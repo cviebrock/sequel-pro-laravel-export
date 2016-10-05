@@ -15,7 +15,7 @@ A bundle for [Sequel Pro](https://www.sequelpro.com/) that lets you generate Lar
 ## Usage
 
 Connect to a database, and select a table in the left-hand column.  From the application menu, choose 
-**Bundles > Open > Export to Laravel Migration**, or use the keyboard shortcut **⌃⌥⌘M** (that's 
+**Bundles › Export › Export to Laravel Migration**, or use the keyboard shortcut **⌃⌥⌘M** (that's 
 <kbd>CTRL</kbd> + <kbd>OPTION</kbd> + <kbd>CMD</kbd> + <kbd>M</kbd>).
 
 The resulting Laravel migration file will be saved to your desktop.  You can then move this file into
