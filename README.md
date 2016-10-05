@@ -10,7 +10,8 @@ A bundle for [Sequel Pro](https://www.sequelpro.com/) that lets you generate Lar
    `ExportToLaravelMigration.spBundle-1.0-alpha` > `ExportToLaravelMigration.spBundle`.
    Finder will pop up a warning about changing the file extension, which is normal.  Choose
    the "Use .spBundle" option to turn the directory into a Sequel Pro bundle package.
-3. Move the `ExportToLaravelMigration.spBundle` package to `~/Library/Application Support/Sequel Pro/Bundles/`
+3. Either move the `ExportToLaravelMigration.spBundle` package to `~/Library/Application Support/Sequel Pro/Bundles/`,
+   or simply double-click on the `ExportToLaravelMigration.spBundle` package to install it.
 4. Launch Sequel Pro!
 
 
