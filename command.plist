@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>author</key>
+	<string>Colin Viebrock</string>
+	<key>category</key>
+	<string>Export</string>
+	<key>command</key>
+	<string>
+# Remove temp files
+rm -f "$SP_QUERY_RESULT_FILE"
+rm -f "$SP_QUERY_FILE"
+rm -f "$SP_QUERY_RESULT_STATUS_FILE"
+
+# Check if one table is selected
+if [ -z "$SP_SELECTED_TABLE" ]; then
+	echo "<font color=red>Please select a table.</font>"
+	exit $SP_BUNDLE_EXIT_SHOW_AS_HTML_TOOLTIP
+fi
+
+# send DESCRIBE query to Sequel Pro
+cat &lt;&lt;SQL &gt; "$SP_QUERY_FILE"
+DESCRIBE ${SP_SELECTED_TABLE}
+SQL
+
+# execute the SQL statement; the result will be available in the file $SP_QUERY_RESULT_FILE
+open "sequelpro://$SP_PROCESS_ID@passToDoc/ExecuteQuery"
+
+# wait for Sequel Pro; status file will be written to disk if query was finished
+while [ 1 ]
+do
+	[[ -e "$SP_QUERY_RESULT_STATUS_FILE" ]] &amp;&amp; break
+	sleep 0.01
+done
+
+# check for errors
+if [ `cat $SP_QUERY_RESULT_STATUS_FILE` == 1 ]; then
+	echo "Query error."
+	exit $SP_BUNDLE_EXIT_SHOW_AS_HTML_TOOLTIP
+fi
+
+# save the DESCRIBE result
+cp $SP_QUERY_RESULT_FILE "$SP_BUNDLE_PATH/rowsStructure.tsv"
+
+
+# Remove temp files
+rm -f "$SP_QUERY_RESULT_FILE"
+rm -f "$SP_QUERY_FILE"
+rm -f "$SP_QUERY_RESULT_STATUS_FILE"
+
+# send SHOW INDEXES query to Sequel Pro
+cat &lt;&lt;SQL &gt; "$SP_QUERY_FILE"
+SHOW INDEXES FROM ${SP_SELECTED_TABLE}
+SQL
+
+# execute the SQL statement; the result will be available in the file $SP_QUERY_RESULT_FILE
+open "sequelpro://$SP_PROCESS_ID@passToDoc/ExecuteQuery"
+
+# wait for Sequel Pro; status file will be written to disk if query was finished
+while [ 1 ]
+do
+	[[ -e "$SP_QUERY_RESULT_STATUS_FILE" ]] &amp;&amp; break
+	sleep 0.01
+done
+
+# check for errors
+if [ `cat $SP_QUERY_RESULT_STATUS_FILE` == 1 ]; then
+	echo "Query error."
+	exit $SP_BUNDLE_EXIT_SHOW_AS_HTML_TOOLTIP
+fi
+
+# save the SHOW INDEXES result
+cp $SP_QUERY_RESULT_FILE "$SP_BUNDLE_PATH/rowsIndexes.tsv"
+
+
+# process the results and save to the desktop
+DATAFILENAME=$(date "+%Y_%m_%d_%H%M%S_create_${SP_SELECTED_TABLE}_table.php")
+/usr/bin/php "$SP_BUNDLE_PATH/parse.php" &gt; ~/Desktop/$DATAFILENAME
+
+# Remove temp files
+rm -f "$SP_QUERY_RESULT_FILE"
+rm -f "$SP_QUERY_FILE"
+rm -f "$SP_QUERY_RESULT_STATUS_FILE"
+</string>
+	<key>contact</key>
+	<string>pbyva@ivroebpx.pn</string>
+	<key>description</key>
+	<string>Export the current table as a Laravel 5 migration file.</string>
+	<key>input</key>
+	<string>selectedtablerowsastab</string>
+	<key>internalKeyEquivalent</key>
+	<dict>
+		<key>characters</key>
+		<string>M</string>
+		<key>keyCode</key>
+		<integer>46</integer>
+		<key>modifierFlags</key>
+		<integer>1835008</integer>
+	</dict>
+	<key>keyEquivalent</key>
+	<string>^~@m</string>
+	<key>name</key>
+	<string>Export as Laravel Migration</string>
+	<key>output</key>
+	<string>showashtml</string>
+	<key>scope</key>
+	<string>general</string>
+	<key>tooltip</key>
+	<string>Export to Laravel Migration</string>
+	<key>uuid</key>
+	<string>D972203E-AA5E-4F67-B16B-A983BCC3B797</string>
+	<key>withblob</key>
+	<string>exclude</string>
+</dict>
+</plist>
