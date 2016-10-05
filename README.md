@@ -2,6 +2,8 @@
 
 A bundle for [Sequel Pro](https://www.sequelpro.com/) that lets you generate Laravel migration files from existing tables.
 
+[![Github All Releases](https://img.shields.io/github/downloads/cviebrock/sequel-pro-laravel-export/total.svg)]()
+
 
 ## Installation
 
