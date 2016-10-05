@@ -4,33 +4,8 @@
 <dict>
 	<key>author</key>
 	<string>Colin Viebrock</string>
-	<key>contact</key>
-	<string>uggcf://tvguho.pbz/pivroebpx/RkcbegGbYneniryZvtengvba.fcOhaqyr</string>
-	<key>description</key>
-	<string>Exports the selected table to a Laravel migration file on the desktop.</string>
 	<key>category</key>
-	<string>Open</string>
-	<key>internalKeyEquivalent</key>
-	<dict>
-		<key>characters</key>
-		<string>M</string>
-		<key>keyCode</key>
-		<integer>46</integer>
-		<key>modifierFlags</key>
-		<integer>1835008</integer>
-	</dict>
-	<key>keyEquivalent</key>
-	<string>^~@m</string>
-	<key>name</key>
-	<string>Export To Laravel Migration</string>
-	<key>output</key>
-	<string>showastexttooltip</string>
-	<key>scope</key>
-	<string>general</string>
-	<key>tooltip</key>
-	<string>Export To Laravel Migration</string>
-	<key>uuid</key>
-	<string>D2D85398-B6EC-4343-8828-DDBEEDBF1826</string>
+	<string></string>
 	<key>command</key>
 	<string>
 # Remove temp files
@@ -109,5 +84,25 @@ rm -f "$SP_QUERY_RESULT_FILE"
 rm -f "$SP_QUERY_FILE"
 rm -f "$SP_QUERY_RESULT_STATUS_FILE"
 </string>
+	<key>contact</key>
+	<string>uggcf://tvguho.pbz/pivroebpx/RkcbegGbYneniryZvtengvba.fcOhaqyr</string>
+	<key>description</key>
+	<string>Exports the selected table to a Laravel migration file on the desktop.</string>
+	<key>input</key>
+	<string></string>
+	<key>isDefaultBundle</key>
+	<true/>
+	<key>keyEquivalent</key>
+	<string>^~@m</string>
+	<key>name</key>
+	<string>Export To Laravel Migration</string>
+	<key>output</key>
+	<string>showastexttooltip</string>
+	<key>scope</key>
+	<string>general</string>
+	<key>tooltip</key>
+	<string>Exports the selected table to Laravel migration file on the Desktop</string>
+	<key>uuid</key>
+	<string>D2D85398-B6EC-4343-8828-DDBEEDBF1826</string>
 </dict>
 </plist>
