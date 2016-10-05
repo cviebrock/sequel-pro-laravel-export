@@ -95,7 +95,7 @@ rm -f "$SP_QUERY_RESULT_STATUS_FILE"
 	<key>output</key>
 	<string>showastexttooltip</string>
 	<key>scope</key>
-	<string>datatable</string>
+	<string>general</string>
 	<key>tooltip</key>
 	<string>Export the selected table to Laravel migration file on the Desktop</string>
 	<key>uuid</key>
