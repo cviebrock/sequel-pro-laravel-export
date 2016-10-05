@@ -4,8 +4,33 @@
 <dict>
 	<key>author</key>
 	<string>Colin Viebrock</string>
+	<key>contact</key>
+	<string>uggcf://tvguho.pbz/pivroebpx/RkcbegGbYneniryZvtengvba.fcOhaqyr</string>
+	<key>description</key>
+	<string>Exports the selected table to a Laravel migration file on the desktop.</string>
 	<key>category</key>
-	<string>Export</string>
+	<string>Open</string>
+	<key>internalKeyEquivalent</key>
+	<dict>
+		<key>characters</key>
+		<string>M</string>
+		<key>keyCode</key>
+		<integer>46</integer>
+		<key>modifierFlags</key>
+		<integer>1835008</integer>
+	</dict>
+	<key>keyEquivalent</key>
+	<string>^~@m</string>
+	<key>name</key>
+	<string>Export To Laravel Migration</string>
+	<key>output</key>
+	<string>showastexttooltip</string>
+	<key>scope</key>
+	<string>general</string>
+	<key>tooltip</key>
+	<string>Export To Laravel Migration</string>
+	<key>uuid</key>
+	<string>D2D85398-B6EC-4343-8828-DDBEEDBF1826</string>
 	<key>command</key>
 	<string>
 # Remove temp files
@@ -75,42 +100,14 @@ cp $SP_QUERY_RESULT_FILE "$SP_BUNDLE_PATH/rowsIndexes.tsv"
 
 
 # process the results and save to the desktop
-DATAFILENAME=$(date "+%Y_%m_%d_%H%M%S_create_${SP_SELECTED_TABLE}_table.php")
-/usr/bin/php "$SP_BUNDLE_PATH/parse.php" &gt; ~/Desktop/$DATAFILENAME
+FILENAME=$(date "+%Y_%m_%d_%H%M%S_create_${SP_SELECTED_TABLE}_table.php")
+/usr/bin/php "$SP_BUNDLE_PATH/parse.php" &gt; ~/Desktop/$FILENAME
+echo "Migration saved to ~/Desktop/$DATAFILENAME."
 
 # Remove temp files
 rm -f "$SP_QUERY_RESULT_FILE"
 rm -f "$SP_QUERY_FILE"
 rm -f "$SP_QUERY_RESULT_STATUS_FILE"
 </string>
-	<key>contact</key>
-	<string>pbyva@ivroebpx.pn</string>
-	<key>description</key>
-	<string>Export the current table as a Laravel 5 migration file.</string>
-	<key>input</key>
-	<string>selectedtablerowsastab</string>
-	<key>internalKeyEquivalent</key>
-	<dict>
-		<key>characters</key>
-		<string>M</string>
-		<key>keyCode</key>
-		<integer>46</integer>
-		<key>modifierFlags</key>
-		<integer>1835008</integer>
-	</dict>
-	<key>keyEquivalent</key>
-	<string>^~@m</string>
-	<key>name</key>
-	<string>Export as Laravel Migration</string>
-	<key>output</key>
-	<string>showashtml</string>
-	<key>scope</key>
-	<string>general</string>
-	<key>tooltip</key>
-	<string>Export to Laravel Migration</string>
-	<key>uuid</key>
-	<string>D972203E-AA5E-4F67-B16B-A983BCC3B797</string>
-	<key>withblob</key>
-	<string>exclude</string>
 </dict>
 </plist>
