@@ -1,17 +1,12 @@
-# ExportToLaravelMigrations.spBundle
+# Laravel Migration Exporter for Sequel Pro
 
 A bundle for [Sequel Pro](https://www.sequelpro.com/) that lets you generate Laravel migration files from existing tables.
 
 
 ## Installation
 
-1. Download the latest release and unzip the file.
-2. Rename the directory to remove the version name, e.g. 
-   `ExportToLaravelMigration.spBundle-1.0-alpha` > `ExportToLaravelMigration.spBundle`.
-   Finder will pop up a warning about changing the file extension, which is normal.  Choose
-   the "Use .spBundle" option to turn the directory into a Sequel Pro bundle package.
-3. Either move the `ExportToLaravelMigration.spBundle` package to `~/Library/Application Support/Sequel Pro/Bundles/`,
-   or simply double-click on the `ExportToLaravelMigration.spBundle` package to install it.
+1. Clone the repository or download the latest release and unzip the file.
+3. Double-click on the `ExportToLaravelMigration.spBundle` package within the repository directory to install the bundle.
 4. Launch Sequel Pro!
 
 
@@ -33,16 +28,16 @@ running `artisan migrate`!
 
 ## Bugs, Suggestions and Contributions
 
-Thanks to [everyone](https://github.com/cviebrock/ExportToLaravelMigration.spBundle/graphs/contributors)
+Thanks to [everyone](https://github.com/cviebrock/sequel-pro-laravel-export/graphs/contributors)
 who has contributed to this project!
 
-Please use [Github issues](https://github.com/cviebrock/ExportToLaravelMigration.spBundle/issues) for reporting bugs, 
+Please use [Github issues](https://github.com/cviebrock/sequel-pro-laravel-export/issues) for reporting bugs, 
 and making comments or suggestions.
 
 
 ## Copyright and License
 
-[ExportToLaravelMigration.spbundle](https://github.com/cviebrock/ExportToLaravelMigration.spBundle)
+[sequel-pro-laravel-export](https://github.com/cviebrock/sequel-pro-laravel-export)
 was written by [Colin Viebrock](http://viebrock.ca) and is released under the 
 [MIT License](LICENSE.md).
 
