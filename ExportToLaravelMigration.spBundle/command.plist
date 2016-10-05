@@ -5,7 +5,7 @@
 	<key>author</key>
 	<string>Colin Viebrock</string>
 	<key>category</key>
-	<string></string>
+	<string>Export</string>
 	<key>command</key>
 	<string>
 # Remove temp files
@@ -15,7 +15,7 @@ rm -f "$SP_QUERY_RESULT_STATUS_FILE"
 
 # Check if one table is selected
 if [ -z "$SP_SELECTED_TABLE" ]; then
-	echo "<font color=red>Please select a table.</font>"
+	echo "&lt;font color=red&gt;Please select a table.&lt;/font&gt;"
 	exit $SP_BUNDLE_EXIT_SHOW_AS_HTML_TOOLTIP
 fi
 
@@ -88,10 +88,6 @@ rm -f "$SP_QUERY_RESULT_STATUS_FILE"
 	<string>uggcf://tvguho.pbz/pivroebpx/RkcbegGbYneniryZvtengvba.fcOhaqyr</string>
 	<key>description</key>
 	<string>Exports the selected table to a Laravel migration file on the desktop.</string>
-	<key>input</key>
-	<string></string>
-	<key>isDefaultBundle</key>
-	<true/>
 	<key>keyEquivalent</key>
 	<string>^~@m</string>
 	<key>name</key>
@@ -99,10 +95,10 @@ rm -f "$SP_QUERY_RESULT_STATUS_FILE"
 	<key>output</key>
 	<string>showastexttooltip</string>
 	<key>scope</key>
-	<string>general</string>
+	<string>datatable</string>
 	<key>tooltip</key>
-	<string>Exports the selected table to Laravel migration file on the Desktop</string>
+	<string>Export the selected table to Laravel migration file on the Desktop</string>
 	<key>uuid</key>
-	<string>D2D85398-B6EC-4343-8828-DDBEEDBF1826</string>
+	<string>BAAD749B-F050-4F02-879C-333B581D2E23</string>
 </dict>
 </plist>
