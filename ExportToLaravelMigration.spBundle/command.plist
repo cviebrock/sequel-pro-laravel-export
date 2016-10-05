@@ -76,7 +76,7 @@ cp $SP_QUERY_RESULT_FILE "$SP_BUNDLE_PATH/rowsIndexes.tsv"
 
 # process the results and save to the desktop
 FILENAME=$(date "+%Y_%m_%d_%H%M%S_create_${SP_SELECTED_TABLE}_table.php")
-/usr/bin/php "$SP_BUNDLE_PATH/parse.php" &gt; ~/Desktop/$FILENAME
+/usr/bin/php "$SP_BUNDLE_PATH/parse.php" "${SP_SELECTED_TABLE}" &gt; ~/Desktop/$FILENAME
 echo "Migration saved to ~/Desktop/$DATAFILENAME."
 
 # Remove temp files
