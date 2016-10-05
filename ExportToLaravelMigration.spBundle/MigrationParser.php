@@ -59,7 +59,7 @@ class MigrationParser
 
         $output = file_get_contents(__DIR__ . '/create.stub');
 
-        $className = 'Create' . $this->studly($this->tableName);
+        $className = 'Create' . $this->studly($this->tableName) . 'Table';
         $file = '@file database/migrations/' . @date('Y_m_d_His') . '_create_' . strtolower($this->tableName) . '_table.php';
 
         $output = str_replace(
