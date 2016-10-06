@@ -11,7 +11,12 @@ class MigrationParser
     /**
      * @var array
      */
-    protected $indexes = [];
+    protected $keys = [];
+
+    /**
+     * @var array
+     */
+    protected $constraints = [];
 
     /**
      * @var array
@@ -37,34 +42,49 @@ class MigrationParser
     /**
      * @var string
      */
-    protected $indexesFile;
+    protected $keysFile;
 
-    public function __construct($tableName, $structureFile, $indexesFile)
+    /**
+     * @var string
+     */
+    protected $constraintsFile;
+
+    /**
+     * MigrationParser constructor.
+     *
+     * @param string $tableName
+     * @param string $structureFile
+     * @param string $keysFile
+     * @param string $constraintsFile
+     */
+    public function __construct($tableName, $structureFile, $keysFile, $constraintsFile)
     {
         $this->tableName = $tableName;
         $this->structureFile = $structureFile;
-        $this->indexesFile = $indexesFile;
+        $this->keysFile = $keysFile;
+        $this->constraintsFile = $constraintsFile;
     }
 
     public function makeMigration()
     {
         $this->buildStructure();
-        $this->buildIndexes();
+        $this->buildKeys();
+        $this->buildConstraints();
 
         $indent = str_repeat(' ', 12);
         $eol = "\n";
 
         $structure = implode($eol . $indent, $this->formatStructure()) . $eol;
-        $indexes = implode($eol . $indent, $this->formatIndexes()) . $eol;
+        $keys = implode($eol . $indent, $this->formatKeys()) . $eol;
+        $constraints = implode($eol . $indent, $this->formatConstraints()) . $eol;
 
         $output = file_get_contents(__DIR__ . '/create.stub');
 
         $className = 'Create' . $this->studly($this->tableName) . 'Table';
-        $file = '@file database/migrations/' . @date('Y_m_d_His') . '_create_' . strtolower($this->tableName) . '_table.php';
 
         $output = str_replace(
-            ['DummyClass', 'DummyTable', '// structure', '// indexes', '@date', '@file'],
-            [$className, $this->tableName, $structure, $indexes, $date, $file],
+            ['DummyClass', 'DummyTable', '// structure', '// keys', '// constraints'],
+            [$className, $this->tableName, $structure, $keys, $constraints],
             $output
         );
 
@@ -194,11 +214,11 @@ class MigrationParser
         return $fields;
     }
 
-    public function buildIndexes()
+    public function buildKeys()
     {
-        $this->indexes = [];
+        $this->keys = [];
 
-        $rows = file($this->indexesFile);
+        $rows = file($this->keysFile);
         array_shift($rows);
 
         foreach ($rows as $row) {
@@ -207,10 +227,8 @@ class MigrationParser
             if ($keyName === 'PRIMARY') {
 
                 $field = $this->structure[$colName];
-                if ($field['method'] === 'increments' || $field['method'] === 'bigIncrements') {
-                    // skip setting a primary index, as the increments method does that
-                } else {
-                    $this->indexes[$colName] = [
+                if (stripos($field['method'], 'increments') === false) {
+                    $this->keys[$colName] = [
                         'method' => 'primary',
                     ];
                 }
@@ -218,23 +236,58 @@ class MigrationParser
                 continue;
             }
 
-            if (!array_key_exists($keyName, $this->indexes)) {
-                $this->indexes[$keyName] = [
+            if (!array_key_exists($keyName, $this->keys)) {
+                $this->keys[$keyName] = [
                     'method'  => $nonUnique ? 'index' : 'unique',
                     'columns' => [],
                 ];
             }
-            $this->indexes[$keyName]['columns'][$seq] = $colName;
+            $this->keys[$keyName]['columns'][$seq] = $colName;
         }
     }
 
-    public function formatIndexes()
+    public function formatKeys()
     {
         $fields = [];
-        foreach ($this->indexes as $field => $data) {
+        foreach ($this->keys as $field => $data) {
             $temp = '$table->' . $data['method'];
             $columns = $this->escapeArray($data['columns']);
             $temp .= '(' . $columns . ', \'' . $field . '\')';
+
+            $fields[$field] = $temp . ';';
+        }
+
+        return $fields;
+    }
+
+    public function buildConstraints()
+    {
+        $this->constraints = [];
+
+        $rows = file($this->constraintsFile);
+        array_shift($rows);
+
+        foreach ($rows as $row) {
+            list($constraint, $colName, $refTable, $refColumn, $updateRule, $deleteRule) = explode("\t", $row);
+
+            if (array_key_exists($constraint, $this->keys)) {
+                unset($this->keys[$constraint]);
+            }
+
+            $this->constraints[$constraint] = compact('colName', 'refTable', 'refColumn', 'updateRule', 'deleteRule');
+        }
+    }
+
+    public function formatConstraints()
+    {
+        $fields = [];
+        foreach ($this->constraints as $field => $data) {
+            $columns = $this->escapeArray($data['colName']);
+            $temp = '$table->foreign(' . $columns . ', \'' . $field . '\')' .
+                '->references(\'' . $data['refColumn'] . '\')' .
+                '->on(\'' . $data['refTable'] . '\')' .
+                '->onDelete(\'' . $data['deleteRule'] . '\')' .
+                '->onUpdate(\'' . $data['updateRule'] . '\')';
 
             $fields[$field] = $temp . ';';
         }
@@ -275,25 +328,20 @@ class MigrationParser
 
     protected function parseInt($type, $args, $typeExtra, $extra)
     {
+        $method = $this->integerMaps[$type];
         if (strpos($extra, 'auto_increment') !== false) {
-            $method = 'increments';
-        } else {
-            $method = $this->integerMaps[$type];
+            $method = str_replace('nteger', 'ncrements', $method);
         }
-        $unsigned = strpos($typeExtra, 'unsigned') !== false;
-        $args = null;
+        if (strpos($typeExtra, 'unsigned') !== false) {
+            $method = 'unsigned' . ucfirst($method);
+        }
 
-        return compact('method', 'args', 'unsigned', 'nullable');
+        return $this->defaultParse($method);
     }
 
     protected function parseBigint($type, $args, $typeExtra, $extra)
     {
-        $data = $this->parseInt($type, $args, $typeExtra, $extra);
-        if (strpos($extra, 'auto_increment') !== false) {
-            $data['method'] = 'bigIncrements';
-        }
-
-        return $data;
+        return $this->parseInt($type, $args, $typeExtra, $extra);
     }
 
     protected function parseMediumint($type, $args, $typeExtra, $extra)
@@ -312,7 +360,7 @@ class MigrationParser
             $method = 'boolean';
             $args = $unsigned = null;
 
-            return compact('method', 'args', 'unsigned', 'nullable');
+            return compact('method', 'args', 'unsigned');
         }
 
         return $this->parseInt($type, $args, $typeExtra, $extra);

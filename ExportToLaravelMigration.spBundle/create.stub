@@ -19,7 +19,8 @@ class DummyClass extends Migration
     {
         Schema::create('DummyTable', function (Blueprint $table) {
             // structure
-            // indexes
+            // keys
+            // constraints
         });
     }
 
