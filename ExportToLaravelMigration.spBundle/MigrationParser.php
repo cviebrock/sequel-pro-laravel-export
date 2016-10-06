@@ -236,7 +236,7 @@ class MigrationParser
             $columns = $this->escapeArray($data['columns']);
             $temp .= '(' . $columns . ', \'' . $field . '\')';
 
-            $fields[$field] = $temp;
+            $fields[$field] = $temp . ';';
         }
 
         return $fields;
