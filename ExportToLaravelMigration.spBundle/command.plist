@@ -141,8 +141,7 @@ SQL
 	# save the CONSTRAINTS result
 	cp $SP_QUERY_RESULT_FILE "$SP_BUNDLE_PATH/rowsConstraints.tsv"
 else
-	cat &lt;&lt;SQL &gt; "$SP_BUNDLE_PATH/rowsConstraints.tsv"
-SQL
+	echo -n "" &gt; "$SP_BUNDLE_PATH/rowsConstraints.tsv"
 fi
 
 # process the results and save to the desktop
