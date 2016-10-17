@@ -437,6 +437,11 @@ class MigrationParser
         return $this->defaultParse('timestamp', $args);
     }
 
+    protected function parseJson($type, $args, $typeExtra, $extra)
+    {
+        return $this->defaultParse('json', $args);
+    }
+
     private function defaultParse($method, $args = null)
     {
         return compact('method', 'args');
