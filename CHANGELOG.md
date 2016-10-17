@@ -2,8 +2,9 @@
 
 ## 1.0-beta.3 - 17-Oct-2016
 
-- Added support for `JSON` columns
-- Fixed `ENUM` column output
+- Added support for `json` columns
+- Fixed `enum` column output
+- Fixed `unsignedIncrements()` bug
 - Bug fixes
 
 ## 1.0-beta.2 - 13-Oct-2016
