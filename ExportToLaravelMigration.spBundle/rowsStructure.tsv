@@ -1,0 +1,11 @@
+Field	Type	Null	Key	Default	Extra
+id	int(10) unsigned	NO	PRI	NULL	auto_increment
+name	varchar(255)	NO		NULL	
+email	varchar(255)	NO		NULL	
+password	varchar(255)	NO		NULL	
+remember_token	varchar(255)	YES		NULL	
+featured_image	varchar(255)	YES		NULL	
+description	text	YES		NULL	
+created_at	datetime	NO		NULL	
+updated_at	datetime	YES		NULL	
+deleted_at	datetime	YES		NULL	

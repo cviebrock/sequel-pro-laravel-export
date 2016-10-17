@@ -7,21 +7,28 @@
 	<key>category</key>
 	<string>Export</string>
 	<key>command</key>
-	<string>
+	<string># Check if one table is selected
+if [ -z "$SP_SELECTED_TABLES" ]; then
+	echo "&lt;font color=red&gt;Please select a table.&lt;/font&gt;"
+	exit $SP_BUNDLE_EXIT_SHOW_AS_HTML_TOOLTIP
+fi
+
+# Split by tab
+IFS=$'\t'
+read -r -a tables &lt;&lt;&lt; "$SP_SELECTED_TABLES"
+
+# Loop through tables
+for table in "${tables[@]}"
+do
+
 # Remove temp files
 rm -f "$SP_QUERY_RESULT_FILE"
 rm -f "$SP_QUERY_FILE"
 rm -f "$SP_QUERY_RESULT_STATUS_FILE"
 
-# Check if one table is selected
-if [ -z "$SP_SELECTED_TABLE" ]; then
-	echo "&lt;font color=red&gt;Please select a table.&lt;/font&gt;"
-	exit $SP_BUNDLE_EXIT_SHOW_AS_HTML_TOOLTIP
-fi
-
 # send DESCRIBE query to Sequel Pro
 cat &lt;&lt;SQL &gt; "$SP_QUERY_FILE"
-DESCRIBE ${SP_SELECTED_TABLE}
+DESCRIBE ${table}
 SQL
 
 # execute the SQL statement; the result will be available in the file $SP_QUERY_RESULT_FILE
@@ -51,7 +58,7 @@ rm -f "$SP_QUERY_RESULT_STATUS_FILE"
 
 # send SHOW INDEXES query to Sequel Pro
 cat &lt;&lt;SQL &gt; "$SP_QUERY_FILE"
-SHOW INDEXES FROM ${SP_SELECTED_TABLE}
+SHOW INDEXES FROM ${table}
 SQL
 
 # execute the SQL statement; the result will be available in the file $SP_QUERY_RESULT_FILE
@@ -88,7 +95,7 @@ LEFT JOIN
 ON
   (rc.CONSTRAINT_NAME=kcu.CONSTRAINT_NAME)
 WHERE
-   rc.TABLE_NAME = '${SP_SELECTED_TABLE}';
+   rc.TABLE_NAME = '${table}';
 SQL
 
 # execute the SQL statement; the result will be available in the file $SP_QUERY_RESULT_FILE
@@ -102,7 +109,7 @@ do
 done
 
 # check for errors
-if [ `cat $SP_QUERY_RESULT_STATUS_FILE` > 0 ]; then
+if [ `cat $SP_QUERY_RESULT_STATUS_FILE` &gt; 0 ]; then
 	# Remove temp files
 	rm -f "$SP_QUERY_RESULT_FILE"
 	rm -f "$SP_QUERY_FILE"
@@ -119,7 +126,7 @@ LEFT JOIN
 ON
   (rc.CONSTRAINT_NAME=kcu.CONSTRAINT_NAME)
 WHERE
-   rc.TABLE_NAME = '${SP_SELECTED_TABLE}';
+   rc.TABLE_NAME = '${table}';
 SQL
 
 	# execute the SQL statement; the result will be available in the file $SP_QUERY_RESULT_FILE
@@ -145,14 +152,15 @@ else
 fi
 
 # process the results and save to the desktop
-FILENAME=$(date "+%Y_%m_%d_%H%M%S_create_${SP_SELECTED_TABLE}_table.php")
-/usr/bin/php "$SP_BUNDLE_PATH/parse.php" "${SP_SELECTED_TABLE}" &gt; ~/Desktop/$FILENAME
+FILENAME=$(date "+%Y_%m_%d_%H%M%S_create_${table}_table.php")
+/usr/bin/php "$SP_BUNDLE_PATH/parse.php" "${table}" &gt; ~/Desktop/$FILENAME
 echo "Migration saved to ~/Desktop/$DATAFILENAME."
 
 # Remove temp files
 rm -f "$SP_QUERY_RESULT_FILE"
 rm -f "$SP_QUERY_FILE"
 rm -f "$SP_QUERY_RESULT_STATUS_FILE"
+done
 </string>
 	<key>contact</key>
 	<string>uggcf://tvguho.pbz/pivroebpx/RkcbegGbYneniryZvtengvba.fcOhaqyr</string>
