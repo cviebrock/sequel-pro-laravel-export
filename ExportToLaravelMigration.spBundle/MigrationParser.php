@@ -331,8 +331,7 @@ class MigrationParser
         $method = $this->integerMaps[$type];
         if (strpos($extra, 'auto_increment') !== false) {
             $method = str_replace('nteger', 'ncrements', $method);
-        }
-        if (strpos($typeExtra, 'unsigned') !== false) {
+        } elseif (strpos($typeExtra, 'unsigned') !== false) {
             $method = 'unsigned' . ucfirst($method);
         }
 
