@@ -193,7 +193,9 @@ class MigrationParser
             $temp = '$table->' . $data['method'];
             if ($data['field']) {
                 $temp .= '(\'' . $field . '\'';
-                if ($data['args']) {
+                if ($data['method'] === 'enum') {
+                    $temp .= ', [' . implode(', ', (array)$data['args']) . '])';
+                } elseif ($data['args']) {
                     $temp .= ', ' . implode(', ', (array)$data['args']) . ')';
                 } else {
                     $temp .= ')';
