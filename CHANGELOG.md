@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0 - xx-xxx-xxxx
+
+- Added support for exporting multiple tables
+
 ## 1.0-beta.3 - 17-Oct-2016
 
 - Added support for `json` columns
