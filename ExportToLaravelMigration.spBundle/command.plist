@@ -21,112 +21,14 @@ read -r -a tables &lt;&lt;&lt; "$SP_SELECTED_TABLES"
 for table in "${tables[@]}"
 do
 
-# Remove temp files
-rm -f "$SP_QUERY_RESULT_FILE"
-rm -f "$SP_QUERY_FILE"
-rm -f "$SP_QUERY_RESULT_STATUS_FILE"
-
-# send DESCRIBE query to Sequel Pro
-cat &lt;&lt;SQL &gt; "$SP_QUERY_FILE"
-DESCRIBE ${table}
-SQL
-
-# execute the SQL statement; the result will be available in the file $SP_QUERY_RESULT_FILE
-open "sequelpro://$SP_PROCESS_ID@passToDoc/ExecuteQuery"
-
-# wait for Sequel Pro; status file will be written to disk if query was finished
-while [ 1 ]
-do
-	[[ -e "$SP_QUERY_RESULT_STATUS_FILE" ]] &amp;&amp; break
-	sleep 0.01
-done
-
-# check for errors
-if [ `cat $SP_QUERY_RESULT_STATUS_FILE` == 1 ]; then
-	echo "Query error."
-	exit $SP_BUNDLE_EXIT_SHOW_AS_HTML_TOOLTIP
-fi
-
-# save the DESCRIBE result
-cp $SP_QUERY_RESULT_FILE "$SP_BUNDLE_PATH/rowsStructure.tsv"
-
-
-# Remove temp files
-rm -f "$SP_QUERY_RESULT_FILE"
-rm -f "$SP_QUERY_FILE"
-rm -f "$SP_QUERY_RESULT_STATUS_FILE"
-
-# send SHOW INDEXES query to Sequel Pro
-cat &lt;&lt;SQL &gt; "$SP_QUERY_FILE"
-SHOW INDEXES FROM ${table}
-SQL
-
-# execute the SQL statement; the result will be available in the file $SP_QUERY_RESULT_FILE
-open "sequelpro://$SP_PROCESS_ID@passToDoc/ExecuteQuery"
-
-# wait for Sequel Pro; status file will be written to disk if query was finished
-while [ 1 ]
-do
-	[[ -e "$SP_QUERY_RESULT_STATUS_FILE" ]] &amp;&amp; break
-	sleep 0.01
-done
-
-# check for errors
-if [ `cat $SP_QUERY_RESULT_STATUS_FILE` == 1 ]; then
-	echo "Query error."
-	exit $SP_BUNDLE_EXIT_SHOW_AS_HTML_TOOLTIP
-fi
-
-# save the SHOW INDEXES result
-cp $SP_QUERY_RESULT_FILE "$SP_BUNDLE_PATH/rowsKeys.tsv"
-
-# Remove temp files
-rm -f "$SP_QUERY_RESULT_FILE"
-rm -f "$SP_QUERY_FILE"
-rm -f "$SP_QUERY_RESULT_STATUS_FILE"
-
-# check if CONSTRAINTS exists
-cat &lt;&lt;SQL &gt; "$SP_QUERY_FILE"
-SELECT count(kcu.CONSTRAINT_NAME)
-FROM
-  INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc
-LEFT JOIN
-  INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
-ON
-  (rc.CONSTRAINT_NAME=kcu.CONSTRAINT_NAME)
-WHERE
-   rc.TABLE_NAME = '${table}';
-SQL
-
-# execute the SQL statement; the result will be available in the file $SP_QUERY_RESULT_FILE
-open "sequelpro://$SP_PROCESS_ID@passToDoc/ExecuteQuery"
-
-# wait for Sequel Pro; status file will be written to disk if query was finished
-while [ 1 ]
-do
-	[[ -e "$SP_QUERY_RESULT_STATUS_FILE" ]] &amp;&amp; break
-	sleep 0.01
-done
-
-# check for errors
-if [ `cat $SP_QUERY_RESULT_STATUS_FILE` &gt; 0 ]; then
-	# Remove temp files
+	# remove temp files
 	rm -f "$SP_QUERY_RESULT_FILE"
 	rm -f "$SP_QUERY_FILE"
 	rm -f "$SP_QUERY_RESULT_STATUS_FILE"
 
-	# send CONSTRAINTS query to Sequel Pro
+	# send DESCRIBE query to Sequel Pro
 	cat &lt;&lt;SQL &gt; "$SP_QUERY_FILE"
-SELECT
-  kcu.CONSTRAINT_NAME, kcu.COLUMN_NAME, kcu.REFERENCED_TABLE_NAME, kcu.REFERENCED_COLUMN_NAME, rc.UPDATE_RULE, rc.DELETE_RULE
-FROM
-  INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc
-LEFT JOIN
-  INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
-ON
-  (rc.CONSTRAINT_NAME=kcu.CONSTRAINT_NAME)
-WHERE
-   rc.TABLE_NAME = '${table}';
+DESCRIBE ${table}
 SQL
 
 	# execute the SQL statement; the result will be available in the file $SP_QUERY_RESULT_FILE
@@ -141,25 +43,125 @@ SQL
 
 	# check for errors
 	if [ `cat $SP_QUERY_RESULT_STATUS_FILE` == 1 ]; then
-		echo "3 Query error."
+		echo "Query error."
 		exit $SP_BUNDLE_EXIT_SHOW_AS_HTML_TOOLTIP
 	fi
 
-	# save the CONSTRAINTS result
-	cp $SP_QUERY_RESULT_FILE "$SP_BUNDLE_PATH/rowsConstraints.tsv"
-else
-	echo -n "" &gt; "$SP_BUNDLE_PATH/rowsConstraints.tsv"
-fi
+	# save the DESCRIBE result
+	cp $SP_QUERY_RESULT_FILE "$SP_BUNDLE_PATH/rowsStructure.tsv"
 
-# process the results and save to the desktop
-FILENAME=$(date "+%Y_%m_%d_%H%M%S_create_${table}_table.php")
-/usr/bin/php "$SP_BUNDLE_PATH/parse.php" "${table}" &gt; ~/Desktop/$FILENAME
-echo "Migration saved to ~/Desktop/$DATAFILENAME."
 
-# Remove temp files
-rm -f "$SP_QUERY_RESULT_FILE"
-rm -f "$SP_QUERY_FILE"
-rm -f "$SP_QUERY_RESULT_STATUS_FILE"
+	# remove temp files
+	rm -f "$SP_QUERY_RESULT_FILE"
+	rm -f "$SP_QUERY_FILE"
+	rm -f "$SP_QUERY_RESULT_STATUS_FILE"
+
+	# send SHOW INDEXES query to Sequel Pro
+	cat &lt;&lt;SQL &gt; "$SP_QUERY_FILE"
+SHOW INDEXES FROM ${table}
+SQL
+
+	# execute the SQL statement; the result will be available in the file $SP_QUERY_RESULT_FILE
+	open "sequelpro://$SP_PROCESS_ID@passToDoc/ExecuteQuery"
+
+	# wait for Sequel Pro; status file will be written to disk if query was finished
+	while [ 1 ]
+	do
+		[[ -e "$SP_QUERY_RESULT_STATUS_FILE" ]] &amp;&amp; break
+		sleep 0.01
+	done
+
+	# check for errors
+	if [ `cat $SP_QUERY_RESULT_STATUS_FILE` == 1 ]; then
+		echo "Query error."
+		exit $SP_BUNDLE_EXIT_SHOW_AS_HTML_TOOLTIP
+	fi
+
+	# save the SHOW INDEXES result
+	cp $SP_QUERY_RESULT_FILE "$SP_BUNDLE_PATH/rowsKeys.tsv"
+
+	# remove temp files
+	rm -f "$SP_QUERY_RESULT_FILE"
+	rm -f "$SP_QUERY_FILE"
+	rm -f "$SP_QUERY_RESULT_STATUS_FILE"
+
+	# check if CONSTRAINTS exists
+	cat &lt;&lt;SQL &gt; "$SP_QUERY_FILE"
+SELECT count(kcu.CONSTRAINT_NAME)
+FROM
+	INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc
+LEFT JOIN
+	INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
+ON
+	(rc.CONSTRAINT_NAME=kcu.CONSTRAINT_NAME)
+WHERE
+	 rc.TABLE_NAME = '${table}';
+SQL
+
+	# execute the SQL statement; the result will be available in the file $SP_QUERY_RESULT_FILE
+	open "sequelpro://$SP_PROCESS_ID@passToDoc/ExecuteQuery"
+
+	# wait for Sequel Pro; status file will be written to disk if query was finished
+	while [ 1 ]
+	do
+		[[ -e "$SP_QUERY_RESULT_STATUS_FILE" ]] &amp;&amp; break
+		sleep 0.01
+	done
+
+	# check for errors
+	if [ `cat $SP_QUERY_RESULT_STATUS_FILE` &gt; 0 ]; then
+		# Remove temp files
+		rm -f "$SP_QUERY_RESULT_FILE"
+		rm -f "$SP_QUERY_FILE"
+		rm -f "$SP_QUERY_RESULT_STATUS_FILE"
+
+		# send CONSTRAINTS query to Sequel Pro
+		cat &lt;&lt;SQL &gt; "$SP_QUERY_FILE"
+SELECT
+	kcu.CONSTRAINT_NAME, kcu.COLUMN_NAME, kcu.REFERENCED_TABLE_NAME, kcu.REFERENCED_COLUMN_NAME, rc.UPDATE_RULE, rc.DELETE_RULE
+FROM
+	INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc
+LEFT JOIN
+	INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
+ON
+	(rc.CONSTRAINT_NAME=kcu.CONSTRAINT_NAME)
+WHERE
+	 rc.TABLE_NAME = '${table}';
+SQL
+
+		# execute the SQL statement; the result will be available in the file $SP_QUERY_RESULT_FILE
+		open "sequelpro://$SP_PROCESS_ID@passToDoc/ExecuteQuery"
+
+		# wait for Sequel Pro; status file will be written to disk if query was finished
+		while [ 1 ]
+		do
+			[[ -e "$SP_QUERY_RESULT_STATUS_FILE" ]] &amp;&amp; break
+			sleep 0.01
+		done
+
+		# check for errors
+		if [ `cat $SP_QUERY_RESULT_STATUS_FILE` == 1 ]; then
+			echo "3 Query error."
+			exit $SP_BUNDLE_EXIT_SHOW_AS_HTML_TOOLTIP
+		fi
+
+		# save the CONSTRAINTS result
+		cp $SP_QUERY_RESULT_FILE "$SP_BUNDLE_PATH/rowsConstraints.tsv"
+	else
+		echo -n "" &gt; "$SP_BUNDLE_PATH/rowsConstraints.tsv"
+	fi
+
+	# process the results and save to the desktop
+	FILENAME=$(date "+%Y_%m_%d_%H%M%S_create_${table}_table.php")
+	/usr/bin/php "$SP_BUNDLE_PATH/parse.php" "${table}" &gt; ~/Desktop/$FILENAME
+	echo "Migration saved to ~/Desktop/$DATAFILENAME."
+
+	# remove temp files
+	rm -f "$SP_QUERY_RESULT_FILE"
+	rm -f "$SP_QUERY_FILE"
+	rm -f "$SP_QUERY_RESULT_STATUS_FILE"
+
+# end loop through tables
 done
 </string>
 	<key>contact</key>
