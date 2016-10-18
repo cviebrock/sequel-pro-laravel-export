@@ -74,9 +74,9 @@ class MigrationParser
         $indent = str_repeat(' ', 12);
         $eol = "\n";
 
-        $structure = implode($eol . $indent, $this->formatStructure());
-        $keys = implode($eol . $indent, $this->formatKeys());
-        $constraints = implode($eol . $indent, $this->formatConstraints());
+        $structure = trim(implode($eol . $indent, $this->formatStructure())) . $eol;
+        $keys = trim(implode($eol . $indent, $this->formatKeys())) . $eol;
+        $constraints = trim(implode($eol . $indent, $this->formatConstraints())) . $eol;
 
         $output = file_get_contents(__DIR__ . '/create.stub');
 
@@ -84,7 +84,7 @@ class MigrationParser
 
         $output = str_replace(
             ['DummyClass', 'DummyTable', '// structure', '// keys', '// constraints'],
-            [$className, $this->tableName, trim($structure), trim($keys), trim($constraints)],
+            [$className, $this->tableName, $structure, $keys, $constraints],
             $output
         );
 
@@ -190,10 +190,17 @@ class MigrationParser
     {
         $fields = [];
         foreach ($this->structure as $field => $data) {
-            $temp = '$table->' . $data['method'];
+
+            $method = $data['method'];
+            $isNumeric = (stripos($method, 'integer') !== false)
+                || $method === 'decimal'
+                || $method === 'double'
+                || $method === 'float';
+
+            $temp = '$table->' . $method;
             if ($data['field']) {
                 $temp .= '(\'' . $field . '\'';
-                if ($data['method'] === 'enum') {
+                if ($method === 'enum') {
                     $temp .= ', [' . implode(', ', (array)$data['args']) . '])';
                 } elseif ($data['args']) {
                     $temp .= ', ' . implode(', ', (array)$data['args']) . ')';
@@ -207,7 +214,13 @@ class MigrationParser
                 $temp .= '->nullable()';
             }
             if ($data['default']) {
-                $temp .= '->default(\'' . $data['default'] . '\')';
+                if ($isNumeric) {
+                    $temp .= '->default(' . $data['default'] . ')';
+                } elseif ($method==='boolean') {
+                    $temp .= '->default(' . ($data['default'] ? 'true' : 'false') . ')';
+                } else {
+                    $temp .= '->default(\'' . $data['default'] . '\')';
+                }
             }
 
             $fields[$field] = $temp . ';';

@@ -1,8 +1,12 @@
 # Changelog
 
-## 1.0 - xx-xxx-xxxx
+## 1.0.0 - 18-Oct-2016
 
+- First stable release
 - Added support for exporting multiple tables
+- Fix primary keys using multiple columns
+- Better handling of default values for numeric and boolean columns
+
 
 ## 1.0-beta.3 - 17-Oct-2016
 
