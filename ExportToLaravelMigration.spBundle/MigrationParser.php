@@ -74,9 +74,9 @@ class MigrationParser
         $indent = str_repeat(' ', 12);
         $eol = "\n";
 
-        $structure = implode($eol . $indent, $this->formatStructure()) . $eol;
-        $keys = implode($eol . $indent, $this->formatKeys()) . $eol;
-        $constraints = implode($eol . $indent, $this->formatConstraints()) . $eol;
+        $structure = implode($eol . $indent, $this->formatStructure());
+        $keys = implode($eol . $indent, $this->formatKeys());
+        $constraints = implode($eol . $indent, $this->formatConstraints());
 
         $output = file_get_contents(__DIR__ . '/create.stub');
 
@@ -84,7 +84,7 @@ class MigrationParser
 
         $output = str_replace(
             ['DummyClass', 'DummyTable', '// structure', '// keys', '// constraints'],
-            [$className, $this->tableName, $structure, $keys, $constraints],
+            [$className, $this->tableName, trim($structure), trim($keys), trim($constraints)],
             $output
         );
 
@@ -226,18 +226,6 @@ class MigrationParser
         foreach ($rows as $row) {
             list($table, $nonUnique, $keyName, $seq, $colName, $extra) = explode("\t", $row, 6);
 
-            if ($keyName === 'PRIMARY') {
-
-                $field = $this->structure[$colName];
-                if (stripos($field['method'], 'increments') === false) {
-                    $this->keys[$colName] = [
-                        'method' => 'primary',
-                    ];
-                }
-
-                continue;
-            }
-
             if (!array_key_exists($keyName, $this->keys)) {
                 $this->keys[$keyName] = [
                     'method'  => $nonUnique ? 'index' : 'unique',
@@ -246,16 +234,35 @@ class MigrationParser
             }
             $this->keys[$keyName]['columns'][$seq] = $colName;
         }
+
+        // if we have a primary key ...
+        if (array_key_exists('PRIMARY', $this->keys)) {
+            $primary = $this->keys['PRIMARY'];
+            // and it's for one columns ...
+            if (count($primary['columns']) === 1) {
+                $primaryColumn = reset($primary['columns']);
+                $field = $this->structure[$primaryColumn];
+                // and that column is an "increments" field ...
+                if (stripos($field['method'], 'increments') !== false) {
+                    // then don't build the primary key, since Laravel takes care of it
+                    unset($this->keys['PRIMARY']);
+                }
+            }
+        }
     }
 
     public function formatKeys()
     {
         $fields = [];
         foreach ($this->keys as $field => $data) {
-            $temp = '$table->' . $data['method'];
             $columns = $this->escapeArray($data['columns']);
-            $temp .= '(' . $columns . ', \'' . $field . '\')';
-
+            if ($field === 'PRIMARY') {
+                $temp = '$table->primary';
+                $temp .= '(' . $columns . ')';
+            } else {
+                $temp = '$table->' . $data['method'];
+                $temp .= '(' . $columns . ', \'' . $field . '\')';
+            }
             $fields[$field] = $temp . ';';
         }
 
