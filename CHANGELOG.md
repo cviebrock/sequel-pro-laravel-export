@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1 - 16-Nov-2016
+
+- Added support for `comment()`
+
+
 ## 1.0.0 - 18-Oct-2016
 
 - First stable release
