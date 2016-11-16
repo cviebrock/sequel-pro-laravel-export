@@ -119,8 +119,8 @@ SQL
 	# process the results and save to the desktop
 	FILENAME=$(date "+%Y_%m_%d_%H%M%S_create_${table}_table.php")
 	/usr/bin/php "$SP_BUNDLE_PATH/parse.php" "${table}" &gt; ~/Desktop/$FILENAME
-	echo "<p><b>Migration saved to ~/Desktop/$FILENAME.</b></p>"
-    exit $SP_BUNDLE_EXIT_SHOW_AS_HTML_TOOLTIP
+	echo "&lt;p&gt;Migration saved to &lt;strong&gt;~/Desktop/$FILENAME.&lt;/strong&gt;&lt;/p&gt;"
+    exit $SP_BUNDLE_EXIT_SHOW_AS_HTML
 
 	# clean up
 	clear_temp
