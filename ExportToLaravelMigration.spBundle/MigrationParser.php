@@ -107,7 +107,7 @@ class MigrationParser
 
         foreach ($rows as $row) {
 
-            list($field, $colType, $null, $key, $default, $extra) = explode("\t", $row);
+            list($field, $colType, $null, $key, $default, $extra, $comment) = explode("\t", $row);
 
             if (preg_match('#^(\w+)(\((.*?)\))?(.*?)?$#', $colType, $matches)) {
 
@@ -138,6 +138,8 @@ class MigrationParser
                 } else {
                     $data['method'] = 'UNKNOWN:' . $type;
                 }
+                
+                $data['comment'] = trim(str_replace(["\r", "\n"], '', $comment));
 
                 $this->structure[$field] = $data;
             }
@@ -219,8 +221,13 @@ class MigrationParser
                 } elseif ($method==='boolean') {
                     $temp .= '->default(' . ($data['default'] ? 'true' : 'false') . ')';
                 } else {
-                    $temp .= '->default(\'' . $data['default'] . '\')';
+                    $temp .= '->default(\'' . trim($data['default']) . '\')';
                 }
+            }
+
+            // If isn't empty, set the comment
+            if ($data['comment'] !== '') {
+                $temp .= '->comment(\'' . $data['comment'] . '\')';
             }
 
             $fields[$field] = $temp . ';';

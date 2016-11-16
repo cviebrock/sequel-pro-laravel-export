@@ -52,10 +52,16 @@ read -r -a tables &lt;&lt;&lt; "$SP_SELECTED_TABLES"
 for table in "${tables[@]}"
 do
 
-	# send DESCRIBE query to Sequel Pro
-	echo "DESCRIBE ${table}" &gt; "$SP_QUERY_FILE"
+	# get the table structure, including field comments
+	echo "
+	SELECT 
+		COLUMN_NAME AS 'Field', COLUMN_TYPE AS 'Type', IS_NULLABLE AS 'Null', COLUMN_KEY AS 'Key', COLUMN_DEFAULT AS 'Default', EXTRA AS 'Extra', COLUMN_COMMENT AS 'Comments'  
+	FROM 
+		information_schema.columns
+	WHERE 
+		TABLE_NAME = '${table}';" &gt; "$SP_QUERY_FILE"
 
-	# execute and save the DESCRIBE result
+	# execute and save the table structure result
 	execute_sql
 	cp $SP_QUERY_RESULT_FILE "$SP_BUNDLE_PATH/rowsStructure.tsv"
 
