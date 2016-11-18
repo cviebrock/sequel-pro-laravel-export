@@ -55,10 +55,12 @@ do
 	# get the table structure, including field comments
 	echo "
 	SELECT 
-		COLUMN_NAME AS 'Field', COLUMN_TYPE AS 'Type', IS_NULLABLE AS 'Null', COLUMN_KEY AS 'Key', COLUMN_DEFAULT AS 'Default', EXTRA AS 'Extra', COLUMN_COMMENT AS 'Comments'  
+		COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_KEY, COLUMN_DEFAULT, EXTRA, COLUMN_COMMENT
 	FROM 
-		information_schema.columns
-	WHERE 
+		information_schema.COLUMNS
+	WHERE
+		TABLE_SCHEMA = '${SP_SELECTED_DATABASE}'
+	AND
 		TABLE_NAME = '${table}';" &gt; "$SP_QUERY_FILE"
 
 	# execute and save the table structure result
@@ -77,17 +79,18 @@ do
 	clear_temp
 
 	# check if CONSTRAINTS exists
-	cat &lt;&lt;SQL &gt; "$SP_QUERY_FILE"
-SELECT count(kcu.CONSTRAINT_NAME)
-FROM
-	INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc
-LEFT JOIN
-	INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
-ON
-	(rc.CONSTRAINT_NAME=kcu.CONSTRAINT_NAME)
-WHERE
-	 rc.TABLE_NAME = '${table}';
-SQL
+	echo "
+	SELECT count(kcu.CONSTRAINT_NAME)
+	FROM
+		information_schema.REFERENTIAL_CONSTRAINTS rc
+	LEFT JOIN
+		information_schema.KEY_COLUMN_USAGE kcu
+	ON
+		(rc.CONSTRAINT_NAME=kcu.CONSTRAINT_NAME)
+	WHERE
+		kcu.CONSTRAINT_SCHEMA = '${SP_SELECTED_DATABASE}'
+	AND
+		 rc.TABLE_NAME = '${table}';" &gt; "$SP_QUERY_FILE"
 
 	# check for errors
 	execute_sql
@@ -96,18 +99,19 @@ SQL
 		clear_temp
 
 		# send CONSTRAINTS query to Sequel Pro
-		cat &lt;&lt;SQL &gt; "$SP_QUERY_FILE"
-SELECT
-	kcu.CONSTRAINT_NAME, kcu.COLUMN_NAME, kcu.REFERENCED_TABLE_NAME, kcu.REFERENCED_COLUMN_NAME, rc.UPDATE_RULE, rc.DELETE_RULE
-FROM
-	INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc
-LEFT JOIN
-	INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
-ON
-	(rc.CONSTRAINT_NAME=kcu.CONSTRAINT_NAME)
-WHERE
-	 rc.TABLE_NAME = '${table}';
-SQL
+		echo "
+		SELECT
+			kcu.CONSTRAINT_NAME, kcu.COLUMN_NAME, kcu.REFERENCED_TABLE_NAME, kcu.REFERENCED_COLUMN_NAME, rc.UPDATE_RULE, rc.DELETE_RULE
+		FROM
+			information_schema.REFERENTIAL_CONSTRAINTS rc
+		LEFT JOIN
+			information_schema.KEY_COLUMN_USAGE kcu
+		ON
+			(rc.CONSTRAINT_NAME=kcu.CONSTRAINT_NAME)
+		WHERE
+			kcu.CONSTRAINT_SCHEMA = '${SP_SELECTED_DATABASE}'
+		AND
+			 rc.TABLE_NAME = '${table}';" &gt; "$SP_QUERY_FILE"
 
 		# save the CONSTRAINTS result
 		execute_sql
