@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.2 - 18-Nov-2016
+
+- Fix for when there is more than one databases with the same table name(s)
+
+
 ## 1.0.1 - 16-Nov-2016
 
 - Added support for `comment()`
