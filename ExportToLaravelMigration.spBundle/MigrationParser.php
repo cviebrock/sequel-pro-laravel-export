@@ -220,6 +220,8 @@ class MigrationParser
                     $temp .= '->default(' . $data['default'] . ')';
                 } elseif ($method==='boolean') {
                     $temp .= '->default(' . ($data['default'] ? 'true' : 'false') . ')';
+                } elseif (strtolower(trim($data['default'])) === 'current_timestamp') {
+                    $temp .= '->default(\DB::raw(\'CURRENT_TIMESTAMP\'))';
                 } else {
                     $temp .= '->default(\'' . trim($data['default']) . '\')';
                 }
