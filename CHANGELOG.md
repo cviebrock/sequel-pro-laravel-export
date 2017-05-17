@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0 - 17-May-2017
+
+- Added support for `tinytext()` columns
+- Migrations are now saved to `~/Desktop/SequelProLaravelExport/` instead of directly on the desktop
+
+
 ## 1.0.2 - 18-Nov-2016
 
 - Fix for when there is more than one databases with the same table name(s)

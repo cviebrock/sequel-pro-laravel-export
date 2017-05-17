@@ -16,8 +16,8 @@ Connect to a database, and select a table in the left-hand column.  From the app
 **Bundles › Export › Export to Laravel Migration**, or use the keyboard shortcut **⌃⌥⌘M** (that's 
 <kbd>CTRL</kbd> + <kbd>OPTION</kbd> + <kbd>CMD</kbd> + <kbd>M</kbd>).
 
-The resulting Laravel migration file will be saved to your desktop.  You can then move this file into
-your Laravel project (usually `/database/migrations`) and then run `artisan migrate`.
+The resulting Laravel migration file will be saved in a new directory called _SequelProLaravelExport_ on your desktop.
+You can then move this file into your Laravel project (usually `/database/migrations`) and then run `artisan migrate`.
 
 
 ## Caveats
