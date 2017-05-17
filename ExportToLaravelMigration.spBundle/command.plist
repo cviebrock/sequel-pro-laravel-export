@@ -122,8 +122,9 @@ do
 
 	# process the results and save to the desktop
 	FILENAME=$(date "+%Y_%m_%d_%H%M%S_create_${table}_table.php")
-	/usr/bin/php "$SP_BUNDLE_PATH/parse.php" "${table}" &gt; ~/Desktop/$FILENAME
-	echo "&lt;p&gt;Migration saved to &lt;strong&gt;~/Desktop/$FILENAME.&lt;/strong&gt;&lt;/p&gt;"
+	mkdir ~/Desktop/SequelProLaravelExport
+	/usr/bin/php "$SP_BUNDLE_PATH/parse.php" "${table}" &gt; ~/Desktop/SequelProLaravelExport/$FILENAME
+	echo "&lt;p&gt;Migration saved to &lt;strong&gt;~/Desktop/SequelProLaravelExport/$FILENAME.&lt;/strong&gt;&lt;/p&gt;"
 
 	# clean up
 	clear_temp
@@ -135,7 +136,7 @@ exit $SP_BUNDLE_EXIT_SHOW_AS_HTML
 	<key>contact</key>
 	<string>uggcf://tvguho.pbz/pivroebpx/RkcbegGbYneniryZvtengvba.fcOhaqyr</string>
 	<key>description</key>
-	<string>Exports the selected table to a Laravel migration file on the desktop.</string>
+	<string>Exports the selected table(s) to Laravel migration files on the desktop.</string>
 	<key>keyEquivalent</key>
 	<string>^~@m</string>
 	<key>name</key>
@@ -145,7 +146,7 @@ exit $SP_BUNDLE_EXIT_SHOW_AS_HTML
 	<key>scope</key>
 	<string>general</string>
 	<key>tooltip</key>
-	<string>Export the selected table to Laravel migration file on the Desktop</string>
+	<string>Export the selected table(s) to Laravel migration file on the Desktop</string>
 	<key>uuid</key>
 	<string>BAAD749B-F050-4F02-879C-333B581D2E23</string>
 </dict>
