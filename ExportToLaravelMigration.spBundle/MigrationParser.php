@@ -441,6 +441,11 @@ class MigrationParser
         return $this->defaultParse('mediumText', $args);
     }
 
+    protected function parseTinytext($type, $args, $typeExtra, $extra)
+    {
+        return $this->defaultParse('tinyText', $args);
+    }
+
     protected function parseText($type, $args, $typeExtra, $extra)
     {
         return $this->defaultParse('text', $args);
