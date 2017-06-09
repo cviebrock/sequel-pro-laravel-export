@@ -34,6 +34,7 @@ who has contributed to this project!
 Please use [Github issues](https://github.com/cviebrock/sequel-pro-laravel-export/issues) for reporting bugs, 
 and making comments or suggestions.
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to contribute changes.
 
 ## Copyright and License
 
