@@ -70,7 +70,7 @@ do
 	clear_temp
 
 	# send SHOW INDEXES query to Sequel Pro
-	echo "SHOW INDEXES FROM ${table}" &gt; "$SP_QUERY_FILE"
+	echo "SHOW INDEXES FROM `${table}`" &gt; "$SP_QUERY_FILE"
 
 	# execute and save the SHOW INDEXES result
 	execute_sql

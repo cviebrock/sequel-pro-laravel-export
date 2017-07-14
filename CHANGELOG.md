@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.0 - 14-Jul-2017
+
+- Fix for listing indices when the table name is a reserved word
+
+
 ## 1.1.0 - 17-May-2017
 
 - Added support for `tinytext()` columns
