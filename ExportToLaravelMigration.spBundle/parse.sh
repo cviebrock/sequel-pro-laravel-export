@@ -22,20 +22,34 @@ execute_sql()
 
     # check for errors
     if [ `cat $SP_QUERY_RESULT_STATUS_FILE` == 1 ]; then
-        echo "<h2 color=red>Query error:</h2><pre>"
-        cat "$SP_QUERY_FILE"
+        echo "<h2 class='err'>Query error:</h2><pre>"
+        cat $SP_QUERY_RESULT_FILE
         echo "</pre>"
         echo "<button onclick=\"window.system.closeHTMLOutputWindow()\">Close</button>"
         exit $SP_BUNDLE_EXIT_SHOW_AS_HTML
     fi
 }
 
+# set up HTML styles
+echo "
+<style type="text/css">
+body, button { font-size: 15px; }
+.err { color: #900; }
+pre { background: #eee; border: 1px solid #ddd; padding: 15px; }
+button { background: #666; color: #fff; border: 0; padding: 5px 15px; cursor: pointer; transition: all .2s ease; }
+button:hover { background: #444; }
+a { text-decoration: none; color: #04e; }
+a::after { content: ' ➜'; opacity: 0; transition: all .2s ease; }
+a:hover::after { opacity: 0.5; }
+</style>
+"
+
 # start clean
 clear_temp
 
 # Check if one table is selected
 if [ -z "$SP_SELECTED_TABLES" ]; then
-    echo "<h2 color=red>Please select a table.</h2>"
+    echo "<h2 class='err'>Error</h2><p>No table selected.</p>"
     echo "<button onclick=\"window.system.closeHTMLOutputWindow()\">Close</button>"
     exit $SP_BUNDLE_EXIT_SHOW_AS_HTML
 fi
@@ -43,9 +57,9 @@ fi
 # build dest dir
 DESTDIR=~/Desktop/SequelProLaravelExport
 if mkdir -p $DESTDIR; then
-    echo "<p>Created output directory: <strong>$DESTDIR</strong>.</p>";
+    echo "<p>Output directory: <a href='SP-REVEAL-FILE://$DESTDIR'>$DESTDIR</a></p>";
 else
-    echo "<h2 color=red>Error</h2><p>Could not create directory: <strong>$DESTDIR</strong>.</p>"
+    echo "<h2 class='err'>Error</h2><p>Could not create directory: <strong>$DESTDIR</strong></p>"
     echo "<button onclick=\"window.system.closeHTMLOutputWindow()\">Close</button>"
     exit $SP_BUNDLE_EXIT_SHOW_AS_HTML
 fi
@@ -130,7 +144,7 @@ do
     # process the results and save to the desktop
     FILENAME=$(date "+%Y_%m_%d_%H%M%S_create_${table}_table.php")
     /usr/bin/php "$SP_BUNDLE_PATH/parse.php" "${table}" > $DESTDIR/$FILENAME
-    echo "<p>Migration saved to <a href=\"SP-REVEAL-FILE://$DESTDIR/$FILENAME\">$FILENAME</a>.</p>"
+    echo "<p>Migration saved: <a href=\"SP-REVEAL-FILE://$DESTDIR/$FILENAME\">$FILENAME</a></p>"
     # clean up
     clear_temp
 
