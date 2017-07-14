@@ -22,10 +22,11 @@ execute_sql()
 
     # check for errors
     if [ `cat $SP_QUERY_RESULT_STATUS_FILE` == 1 ]; then
-        echo "<p color=red>Query error:</p><pre>"
+        echo "<h2 color=red>Query error:</h2><pre>"
         cat "$SP_QUERY_FILE"
         echo "</pre>"
-        exit $SP_BUNDLE_EXIT_SHOW_AS_HTML_TOOLTIP
+        echo "<button onclick=\"window.system.closeHTMLOutputWindow()\">Close</button>"
+        exit $SP_BUNDLE_EXIT_SHOW_AS_HTML
     fi
 }
 
@@ -34,9 +35,21 @@ clear_temp
 
 # Check if one table is selected
 if [ -z "$SP_SELECTED_TABLES" ]; then
-    echo "<p color=red>Please select a table.</p>"
-    exit $SP_BUNDLE_EXIT_SHOW_AS_HTML_TOOLTIP
+    echo "<h2 color=red>Please select a table.</h2>"
+    echo "<button onclick=\"window.system.closeHTMLOutputWindow()\">Close</button>"
+    exit $SP_BUNDLE_EXIT_SHOW_AS_HTML
 fi
+
+# build dest dir
+DESTDIR=~/Desktop/SequelProLaravelExport
+if mkdir -p $DESTDIR; then
+    echo "<p>Created output directory: <strong>$DESTDIR</strong>.</p>";
+else
+    echo "<h2 color=red>Error</h2><p>Could not create directory: <strong>$DESTDIR</strong>.</p>"
+    echo "<button onclick=\"window.system.closeHTMLOutputWindow()\">Close</button>"
+    exit $SP_BUNDLE_EXIT_SHOW_AS_HTML
+fi
+
 
 # Split by tab
 IFS=$'\t'
@@ -116,14 +129,13 @@ do
 
     # process the results and save to the desktop
     FILENAME=$(date "+%Y_%m_%d_%H%M%S_create_${table}_table.php")
-    mkdir ~/Desktop/SequelProLaravelExport
-    /usr/bin/php "$SP_BUNDLE_PATH/parse.php" "${table}" > ~/Desktop/SequelProLaravelExport/$FILENAME
-    echo "<p>Migration saved to <a href="file://~/Desktop/SequelProLaravelExport/">~/Desktop/SequelProLaravelExport/$FILENAME.</a></p>"
-
+    /usr/bin/php "$SP_BUNDLE_PATH/parse.php" "${table}" > $DESTDIR/$FILENAME
+    echo "<p>Migration saved to <a href=\"SP-REVEAL-FILE://$DESTDIR/$FILENAME\">$FILENAME</a>.</p>"
     # clean up
     clear_temp
 
 # end loop through tables
 done
 
+echo "<button onclick=\"window.system.closeHTMLOutputWindow()\">Close</button>"
 exit $SP_BUNDLE_EXIT_SHOW_AS_HTML

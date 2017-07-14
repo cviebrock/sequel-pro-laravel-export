@@ -17,7 +17,7 @@
 	<key>name</key>
 	<string>Export To Laravel Migration</string>
 	<key>output</key>
-	<string>showastexttooltip</string>
+	<string>showashtml</string>
 	<key>scope</key>
 	<string>general</string>
 	<key>tooltip</key>
