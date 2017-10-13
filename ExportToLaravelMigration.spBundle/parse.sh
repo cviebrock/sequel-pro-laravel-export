@@ -64,6 +64,20 @@ else
     exit $SP_BUNDLE_EXIT_SHOW_AS_HTML
 fi
 
+CONSTRAINTS_TABLE="no"
+
+echo "
+SELECT *
+FROM information_schema.tables
+WHERE table_schema = 'information_schema'
+    AND table_name = 'REFERENTIAL_CONSTRAINTS'
+LIMIT 1;"  > "$SP_QUERY_FILE"
+execute_sql
+
+if [ `cat $SP_QUERY_RESULT_STATUS_FILE` > 0 ] && [[ $(wc -l < $SP_QUERY_RESULT_FILE) -ge 2 ]]; then
+    CONSTRAINTS_TABLE="yes"
+fi
+clear_temp
 
 # Split by tab
 IFS=$'\t'
@@ -99,24 +113,28 @@ do
 
     clear_temp
 
-    # check if CONSTRAINTS exists
-    echo "
-    SELECT count(kcu.CONSTRAINT_NAME)
-    FROM
-        information_schema.REFERENTIAL_CONSTRAINTS rc
-    LEFT JOIN
-        information_schema.KEY_COLUMN_USAGE kcu
-    ON
-        (rc.CONSTRAINT_NAME=kcu.CONSTRAINT_NAME)
-    WHERE
-        kcu.CONSTRAINT_SCHEMA = '${SP_SELECTED_DATABASE}'
-    AND
-         rc.TABLE_NAME = '${table}';" > "$SP_QUERY_FILE"
+    if [ "$CONSTRAINTS_TABLE" == "yes" ]; then
 
-    # check for errors
-    execute_sql
+        # check if CONSTRAINTS exists
+        echo "
+        SELECT count(kcu.CONSTRAINT_NAME)
+        FROM
+            information_schema.REFERENTIAL_CONSTRAINTS rc
+        LEFT JOIN
+            information_schema.KEY_COLUMN_USAGE kcu
+        ON
+            (rc.CONSTRAINT_NAME=kcu.CONSTRAINT_NAME)
+        WHERE
+            kcu.CONSTRAINT_SCHEMA = '${SP_SELECTED_DATABASE}'
+        AND
+             rc.TABLE_NAME = '${table}';" > "$SP_QUERY_FILE"
 
-    if [ `cat $SP_QUERY_RESULT_STATUS_FILE` > 0 ]; then
+        # check for errors
+        execute_sql
+
+    fi
+
+    if [ "$CONSTRAINTS_TABLE" == "yes" ] && [ `cat $SP_QUERY_RESULT_STATUS_FILE` > 0 ]; then
         clear_temp
 
         # send CONSTRAINTS query to Sequel Pro
