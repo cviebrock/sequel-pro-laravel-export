@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.0 - 16-Oct-2017
+
+- Check that `REFERENTIAL_CONSTRAINTS` table exists before using it; should make bundle work with MySQL 5.1.
+
+
 ## 1.2.0 - 14-Jul-2017
 
 - Fix for listing indices when the table name is a reserved word
