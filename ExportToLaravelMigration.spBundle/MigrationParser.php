@@ -4,6 +4,11 @@ class MigrationParser
 {
 
     /**
+     * @var string
+     */
+    protected $version = '1.4.0';
+
+    /**
      * @var array
      */
     protected $structure = [];
@@ -83,8 +88,8 @@ class MigrationParser
         $className = 'Create' . $this->studly($this->tableName) . 'Table';
 
         $output = str_replace(
-            ['DummyClass', 'DummyTable', '// structure', '// keys', '// constraints'],
-            [$className, $this->tableName, $structure, $keys, $constraints],
+            [':VERSION:', 'DummyClass', 'DummyTable', '// structure', '// keys', '// constraints'],
+            [$this->version, $className, $this->tableName, $structure, $keys, $constraints],
             $output
         );
 
@@ -246,11 +251,18 @@ class MigrationParser
         array_shift($rows);
 
         foreach ($rows as $row) {
-            list($table, $nonUnique, $keyName, $seq, $colName, $extra) = explode("\t", $row, 6);
+            list($table, $nonUnique, $keyName, $seq, $colName, $collation, $cardinality, $subPart, $packed, $null, $indexType, $extra) = explode("\t", $row, 12);
+
+            if ($indexType === 'FULLTEXT') {
+                $method = 'fulltext';
+            } else {
+                $method = $nonUnique ? 'index' : 'unique';
+            }
 
             if (!array_key_exists($keyName, $this->keys)) {
                 $this->keys[$keyName] = [
-                    'method'  => $nonUnique ? 'index' : 'unique',
+                    'method'  => $method,
+                    'table'   => $table,
                     'columns' => [],
                 ];
             }
@@ -276,16 +288,25 @@ class MigrationParser
     public function formatKeys()
     {
         $fields = [];
+
         foreach ($this->keys as $field => $data) {
             $columns = $this->escapeArray($data['columns']);
-            if ($field === 'PRIMARY') {
-                $temp = '$table->primary';
-                $temp .= '(' . $columns . ')';
+
+            if ($data['method'] === 'fulltext') {
+                $fields[$field] = sprintf('\\DB::statement("ALTER TABLE %s ADD FULLTEXT INDEX %s (%s)");',
+                    $data['table'],
+                    $field,
+                    $columns
+                );
+            } elseif ($field === 'PRIMARY') {
+                $fields[$field] = sprintf('$table->primary(%s);', $columns);
             } else {
-                $temp = '$table->' . $data['method'];
-                $temp .= '(' . $columns . ', \'' . $field . '\')';
+                $fields[$field] = sprintf('$table->%s(%s, \'%s\');',
+                    $data['method'],
+                    $columns,
+                    $field
+                );
             }
-            $fields[$field] = $temp . ';';
         }
 
         return $fields;
