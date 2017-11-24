@@ -1,8 +1,13 @@
 # Changelog
 
+## 1.4.1 - 24-Nov-2017
+
+- Real fix for handling FULLTEXT indices.
+
+
 ## 1.4.0 - 21-Nov-2017
 
-- Fix for handling FULLTEXT indices.
+- Broken fix for FULLTEXT (version deleted).
 
 
 ## 1.3.1 - 01-Nov-2017

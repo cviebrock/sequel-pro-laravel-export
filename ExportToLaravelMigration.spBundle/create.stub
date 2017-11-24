@@ -22,6 +22,8 @@ class DummyClass extends Migration
             // keys
             // constraints
         });
+
+        // extras
     }
 
     /**

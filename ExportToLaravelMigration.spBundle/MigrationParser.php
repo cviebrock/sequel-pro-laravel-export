@@ -6,7 +6,7 @@ class MigrationParser
     /**
      * @var string
      */
-    protected $version = '1.4.0';
+    protected $version = '1.4.1';
 
     /**
      * @var array
@@ -22,6 +22,11 @@ class MigrationParser
      * @var array
      */
     protected $constraints = [];
+
+    /**
+     * @var array
+     */
+    protected $extras = [];
 
     /**
      * @var array
@@ -76,20 +81,22 @@ class MigrationParser
         $this->buildKeys();
         $this->buildConstraints();
 
-        $indent = str_repeat(' ', 12);
+        $indent8 = str_repeat(' ', 8);
+        $indent12 = str_repeat(' ', 12);
         $eol = "\n";
 
-        $structure = trim(implode($eol . $indent, $this->formatStructure())) . $eol;
-        $keys = trim(implode($eol . $indent, $this->formatKeys())) . $eol;
-        $constraints = trim(implode($eol . $indent, $this->formatConstraints())) . $eol;
+        $structure = trim(implode($eol . $indent12, $this->formatStructure())) . $eol;
+        $keys = trim(implode($eol . $indent12, $this->formatKeys())) . $eol;
+        $constraints = trim(implode($eol . $indent12, $this->formatConstraints())) . $eol;
+        $extras = trim(implode($eol . $indent8, $this->formatExtras())) . $eol;
 
         $output = file_get_contents(__DIR__ . '/create.stub');
 
         $className = 'Create' . $this->studly($this->tableName) . 'Table';
 
         $output = str_replace(
-            [':VERSION:', 'DummyClass', 'DummyTable', '// structure', '// keys', '// constraints'],
-            [$this->version, $className, $this->tableName, $structure, $keys, $constraints],
+            [':VERSION:', 'DummyClass', 'DummyTable', '// structure', '// keys', '// constraints', '// extras'],
+            [$this->version, $className, $this->tableName, $structure, $keys, $constraints, $extras],
             $output
         );
 
@@ -240,7 +247,7 @@ class MigrationParser
             $fields[$field] = $temp . ';';
         }
 
-        return $fields;
+        return array_filter($fields);
     }
 
     public function buildKeys()
@@ -254,19 +261,24 @@ class MigrationParser
             list($table, $nonUnique, $keyName, $seq, $colName, $collation, $cardinality, $subPart, $packed, $null, $indexType, $extra) = explode("\t", $row, 12);
 
             if ($indexType === 'FULLTEXT') {
-                $method = 'fulltext';
+                if (!array_key_exists($keyName, $this->extras)) {
+                    $this->extras[$keyName] = [
+                        'method'  => 'fulltext',
+                        'table'   => $table,
+                        'columns' => [],
+                    ];
+                    $this->extras[$keyName]['columns'][$seq] = $colName;
+                }
             } else {
-                $method = $nonUnique ? 'index' : 'unique';
+                if (!array_key_exists($keyName, $this->keys)) {
+                    $this->keys[$keyName] = [
+                        'method'  => $nonUnique ? 'index' : 'unique',
+                        'table'   => $table,
+                        'columns' => [],
+                    ];
+                }
+                $this->keys[$keyName]['columns'][$seq] = $colName;
             }
-
-            if (!array_key_exists($keyName, $this->keys)) {
-                $this->keys[$keyName] = [
-                    'method'  => $method,
-                    'table'   => $table,
-                    'columns' => [],
-                ];
-            }
-            $this->keys[$keyName]['columns'][$seq] = $colName;
         }
 
         // if we have a primary key ...
@@ -292,13 +304,7 @@ class MigrationParser
         foreach ($this->keys as $field => $data) {
             $columns = $this->escapeArray($data['columns']);
 
-            if ($data['method'] === 'fulltext') {
-                $fields[$field] = sprintf('\\DB::statement("ALTER TABLE %s ADD FULLTEXT INDEX %s (%s)");',
-                    $data['table'],
-                    $field,
-                    $columns
-                );
-            } elseif ($field === 'PRIMARY') {
+            if ($field === 'PRIMARY') {
                 $fields[$field] = sprintf('$table->primary(%s);', $columns);
             } else {
                 $fields[$field] = sprintf('$table->%s(%s, \'%s\');',
@@ -309,8 +315,27 @@ class MigrationParser
             }
         }
 
-        return $fields;
+        return array_filter($fields);
     }
+
+    public function formatExtras()
+    {
+        $fields = [];
+
+        foreach ($this->extras as $field => $data) {
+            if ($data['method'] === 'fulltext') {
+                $columns = $this->escapeColumnList($data['columns']);
+                $fields[$field] = sprintf('\\DB::statement("ALTER TABLE `%s` ADD FULLTEXT INDEX `%s` (%s)");',
+                    $data['table'],
+                    $field,
+                    $columns
+                );
+            }
+        }
+
+        return array_filter($fields);
+    }
+
 
     public function buildConstraints()
     {
@@ -344,7 +369,7 @@ class MigrationParser
             $fields[$field] = $temp . ';';
         }
 
-        return $fields;
+        return array_filter($fields);
     }
 
     protected function copyToClipboard($content)
@@ -376,6 +401,16 @@ class MigrationParser
         }
 
         return $string;
+    }
+
+    protected function escapeColumnList($array)
+    {
+        $array = (array)$array;
+        array_walk($array, function(&$value, $idx) {
+                $value = '`' . $value . '`';
+        });
+
+        return implode(', ', $array);
     }
 
     protected function parseInt($type, $args, $typeExtra, $extra)
