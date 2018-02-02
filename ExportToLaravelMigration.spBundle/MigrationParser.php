@@ -228,7 +228,7 @@ class MigrationParser
                 $temp .= '->nullable()';
             }
             if (isset($data['default'])) {
-                if ($isNumeric || ($method === 'enum')) {
+                if ($isNumeric || ($method === 'enum') || ($method === 'string')) {
                     $temp .= '->default(' . $data['default'] . ')';
                 } elseif ($method==='boolean') {
                     $temp .= '->default(' . ($data['default'] ? 'true' : 'false') . ')';
