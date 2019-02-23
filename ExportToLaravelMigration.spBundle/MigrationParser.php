@@ -241,7 +241,7 @@ class MigrationParser
 
             // If isn't empty, set the comment
             if ($data['comment'] !== '') {
-                $temp .= '->comment(\'' . $data['comment'] . '\')';
+                $temp .= '->comment(\'' . addslashes($data['comment']) . '\')';
             }
 
             $fields[$field] = $temp . ';';
