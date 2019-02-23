@@ -6,7 +6,7 @@ class MigrationParser
     /**
      * @var string
      */
-    protected $version = '1.4.1';
+    protected $version = '1.4.3';
 
     /**
      * @var array
@@ -351,7 +351,7 @@ class MigrationParser
                 unset($this->keys[$constraint]);
             }
 
-            $this->constraints[$constraint] = compact('colName', 'refTable', 'refColumn', 'updateRule', 'deleteRule');
+            $this->constraints[$constraint][] = compact('colName', 'refTable', 'refColumn', 'updateRule', 'deleteRule');
         }
     }
 
@@ -359,12 +359,13 @@ class MigrationParser
     {
         $fields = [];
         foreach ($this->constraints as $field => $data) {
-            $columns = $this->escapeArray($data['colName']);
-            $temp = '$table->foreign(' . $columns . ', \'' . $field . '\')' .
-                '->references(\'' . $data['refColumn'] . '\')' .
-                '->on(\'' . $data['refTable'] . '\')' .
-                '->onDelete(\'' . $data['deleteRule'] . '\')' .
-                '->onUpdate(\'' . $data['updateRule'] . '\')';
+            $colNames   = $this->escapeArray(array_map(function ($entry) { return $entry['colName']; }, $data));
+            $refColumns  = $this->escapeArray(array_map(function ($entry) { return $entry['refColumn']; }, $data));
+            $temp = '$table->foreign(' . $colNames . ', \'' . $field . '\')' .
+                '->references(' . $refColumns . ')' .
+                '->on(\'' . $data[0]['refTable'] . '\')' .
+                '->onDelete(\'' . $data[0]['deleteRule'] . '\')' .
+                '->onUpdate(\'' . $data[0]['updateRule'] . '\')';
 
             $fields[$field] = $temp . ';';
         }
