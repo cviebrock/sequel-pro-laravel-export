@@ -6,7 +6,7 @@ class MigrationParser
     /**
      * @var string
      */
-    protected $version = '1.4.1';
+    protected $version = '1.4.2';
 
     /**
      * @var array
@@ -228,7 +228,7 @@ class MigrationParser
                 $temp .= '->nullable()';
             }
             if (isset($data['default'])) {
-                if ($isNumeric || ($method === 'enum')) {
+                if ($isNumeric || ($method === 'enum' && is_numeric($data['default']))) {
                     $temp .= '->default(' . $data['default'] . ')';
                 } elseif ($method==='boolean') {
                     $temp .= '->default(' . ($data['default'] ? 'true' : 'false') . ')';
@@ -241,7 +241,7 @@ class MigrationParser
 
             // If isn't empty, set the comment
             if ($data['comment'] !== '') {
-                $temp .= '->comment(\'' . $data['comment'] . '\')';
+                $temp .= '->comment(\'' . addslashes($data['comment']) . '\')';
             }
 
             $fields[$field] = $temp . ';';
