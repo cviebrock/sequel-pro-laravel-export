@@ -6,7 +6,7 @@ class MigrationParser
     /**
      * @var string
      */
-    protected $version = '1.4.3';
+    protected $version = '1.5.0';
 
     /**
      * @var array

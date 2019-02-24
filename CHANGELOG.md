@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.5.0 - 24-Feb-2019
+
+- Fixes for:
+    - compound foreign keys
+    - ENUM fields with default strings
+    - quotes in comments
+
+
 ## 1.4.1 - 24-Nov-2017
 
 - Real fix for handling FULLTEXT indices.
