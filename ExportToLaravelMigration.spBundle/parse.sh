@@ -90,7 +90,7 @@ do
     # get the table structure, including field comments
     echo "
     SELECT
-        COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_KEY, COLUMN_DEFAULT, EXTRA, COLUMN_COMMENT
+        COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_KEY, COLUMN_DEFAULT, CHARACTER_SET_NAME, COLLATION_NAME, EXTRA, COLUMN_COMMENT
     FROM
         information_schema.COLUMNS
     WHERE
@@ -109,7 +109,26 @@ do
 
     # execute and save the SHOW INDEXES result
     execute_sql
-    cp $SP_QUERY_RESULT_FILE "$SP_BUNDLE_PATH/rowsKeys.tsv"
+    cp "$SP_QUERY_RESULT_FILE" "$SP_BUNDLE_PATH/rowsKeys.tsv"
+
+    clear_temp
+
+    # get character set and collation name
+    echo "
+    SELECT
+	    CHARACTER_SET_NAME, TABLE_COLLATION
+    FROM
+      information_schema.TABLES, information_schema.COLLATION_CHARACTER_SET_APPLICABILITY
+    WHERE
+        COLLATION_NAME = TABLE_COLLATION
+    AND
+        TABLE_SCHEMA = '${SP_SELECTED_DATABASE}'
+    AND
+        TABLE_NAME = '${table}';" > "$SP_QUERY_FILE"
+
+    # execute and save the character set and collation name result
+    execute_sql
+    cp "$SP_QUERY_RESULT_FILE" "$SP_BUNDLE_PATH/rowsTableCharsetAndCollation.tsv"
 
     clear_temp
 
