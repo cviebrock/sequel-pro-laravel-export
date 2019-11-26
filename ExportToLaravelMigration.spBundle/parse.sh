@@ -21,18 +21,18 @@ execute_sql()
     done
 
     # check for errors
-    if [ `cat $SP_QUERY_RESULT_STATUS_FILE` == 1 ]; then
+    if [ `cat "$SP_QUERY_RESULT_STATUS_FILE"` == 1 ]; then
         echo "<h2 class='err'>Query error:</h2><pre>"
-        cat $SP_QUERY_RESULT_FILE
+        cat "$SP_QUERY_RESULT_FILE"
         echo "</pre>"
         echo "<button onclick=\"window.system.closeHTMLOutputWindow()\">Close</button>"
-        exit $SP_BUNDLE_EXIT_SHOW_AS_HTML
+        exit "$SP_BUNDLE_EXIT_SHOW_AS_HTML"
     fi
 }
 
 # set up HTML styles
 echo "
-<style type="text/css">
+<style type=\"text/css\">
 body, button { font-size: 15px; }
 .err { color: #900; }
 pre { background: #eee; border: 1px solid #ddd; padding: 15px; }
@@ -51,7 +51,7 @@ clear_temp
 if [ -z "$SP_SELECTED_TABLES" ]; then
     echo "<h2 class='err'>Error</h2><p>No table selected.</p>"
     echo "<button onclick=\"window.system.closeHTMLOutputWindow()\">Close</button>"
-    exit $SP_BUNDLE_EXIT_SHOW_AS_HTML
+    exit "$SP_BUNDLE_EXIT_SHOW_AS_HTML"
 fi
 
 # build dest dir
@@ -61,7 +61,7 @@ if mkdir -p $DESTDIR; then
 else
     echo "<h2 class='err'>Error</h2><p>Could not create directory: <strong>$DESTDIR</strong></p>"
     echo "<button onclick=\"window.system.closeHTMLOutputWindow()\">Close</button>"
-    exit $SP_BUNDLE_EXIT_SHOW_AS_HTML
+    exit "$SP_BUNDLE_EXIT_SHOW_AS_HTML"
 fi
 
 CONSTRAINTS_TABLE="no"
@@ -100,7 +100,7 @@ do
 
     # execute and save the table structure result
     execute_sql
-    cp $SP_QUERY_RESULT_FILE "$SP_BUNDLE_PATH/rowsStructure.tsv"
+    cp "$SP_QUERY_RESULT_FILE" "$SP_BUNDLE_PATH/rowsStructure.tsv"
 
     clear_temp
 
