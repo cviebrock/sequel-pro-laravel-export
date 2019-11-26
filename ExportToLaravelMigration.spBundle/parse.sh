@@ -74,7 +74,7 @@ WHERE table_schema = 'information_schema'
 LIMIT 1;"  > "$SP_QUERY_FILE"
 execute_sql
 
-if [ `cat $SP_QUERY_RESULT_STATUS_FILE` > 0 ] && [[ $(wc -l < $SP_QUERY_RESULT_FILE) -ge 2 ]]; then
+if [ `cat "$SP_QUERY_RESULT_STATUS_FILE"` -gt 0 ] && [[ $(wc -l < "$SP_QUERY_RESULT_FILE") -ge 2 ]]; then
     CONSTRAINTS_TABLE="yes"
 fi
 clear_temp
@@ -134,7 +134,7 @@ do
 
     fi
 
-    if [ "$CONSTRAINTS_TABLE" == "yes" ] && [ `cat $SP_QUERY_RESULT_STATUS_FILE` > 0 ]; then
+    if [ "$CONSTRAINTS_TABLE" == "yes" ] && [ `cat "$SP_QUERY_RESULT_STATUS_FILE"` -gt 0 ]; then
         clear_temp
 
         # send CONSTRAINTS query to Sequel Pro
