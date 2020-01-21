@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.0 - 20-Jan-2020
+
+- Adds charset and collation information for tables/columns
+- Fix for default values being double-quoted
+
 ## 1.5.0 - 24-Feb-2019
 
 - Fixes for:

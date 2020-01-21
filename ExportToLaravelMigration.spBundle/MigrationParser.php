@@ -6,7 +6,7 @@ class MigrationParser
     /**
      * @var string
      */
-    protected $version = '1.5.1';
+    protected $version = '1.6.0';
 
     /**
      * @var array
@@ -26,12 +26,12 @@ class MigrationParser
     /**
      * @var string
      */
-    protected $tableCharset = null;
+    protected $tableCharset;
 
     /**
      * @var string
      */
-    protected $tableCollation = null;
+    protected $tableCollation;
 
     /**
      * @var array
@@ -262,7 +262,7 @@ class MigrationParser
                 } elseif (strtolower(trim($data['default'])) === 'current_timestamp') {
                     $temp .= '->default(\DB::raw(\'CURRENT_TIMESTAMP\'))';
                 } else {
-                    $temp .= '->default(\'' . trim($data['default']) . '\')';
+                    $temp .= '->default(\'' . $this->trimStringQuotes($data['default']) . '\')';
                 }
             }
 
@@ -596,5 +596,12 @@ class MigrationParser
     private function defaultParse($method, $args = null)
     {
         return compact('method', 'args');
+    }
+
+    private function trimStringQuotes($string)
+    {
+        return trim(
+            trim($string, '"\'')
+        );
     }
 }
