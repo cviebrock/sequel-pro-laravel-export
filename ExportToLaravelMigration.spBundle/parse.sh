@@ -21,18 +21,18 @@ execute_sql()
     done
 
     # check for errors
-    if [ `cat $SP_QUERY_RESULT_STATUS_FILE` == 1 ]; then
+    if [ `cat "$SP_QUERY_RESULT_STATUS_FILE"` == 1 ]; then
         echo "<h2 class='err'>Query error:</h2><pre>"
-        cat $SP_QUERY_RESULT_FILE
+        cat "$SP_QUERY_RESULT_FILE"
         echo "</pre>"
         echo "<button onclick=\"window.system.closeHTMLOutputWindow()\">Close</button>"
-        exit $SP_BUNDLE_EXIT_SHOW_AS_HTML
+        exit "$SP_BUNDLE_EXIT_SHOW_AS_HTML"
     fi
 }
 
 # set up HTML styles
 echo "
-<style type="text/css">
+<style type=\"text/css\">
 body, button { font-size: 15px; }
 .err { color: #900; }
 pre { background: #eee; border: 1px solid #ddd; padding: 15px; }
@@ -51,7 +51,7 @@ clear_temp
 if [ -z "$SP_SELECTED_TABLES" ]; then
     echo "<h2 class='err'>Error</h2><p>No table selected.</p>"
     echo "<button onclick=\"window.system.closeHTMLOutputWindow()\">Close</button>"
-    exit $SP_BUNDLE_EXIT_SHOW_AS_HTML
+    exit "$SP_BUNDLE_EXIT_SHOW_AS_HTML"
 fi
 
 # build dest dir
@@ -61,7 +61,7 @@ if mkdir -p $DESTDIR; then
 else
     echo "<h2 class='err'>Error</h2><p>Could not create directory: <strong>$DESTDIR</strong></p>"
     echo "<button onclick=\"window.system.closeHTMLOutputWindow()\">Close</button>"
-    exit $SP_BUNDLE_EXIT_SHOW_AS_HTML
+    exit "$SP_BUNDLE_EXIT_SHOW_AS_HTML"
 fi
 
 CONSTRAINTS_TABLE="no"
@@ -74,7 +74,7 @@ WHERE table_schema = 'information_schema'
 LIMIT 1;"  > "$SP_QUERY_FILE"
 execute_sql
 
-if [ `cat $SP_QUERY_RESULT_STATUS_FILE` > 0 ] && [[ $(wc -l < $SP_QUERY_RESULT_FILE) -ge 2 ]]; then
+if [ `cat "$SP_QUERY_RESULT_STATUS_FILE"` -gt 0 ] && [[ $(wc -l < "$SP_QUERY_RESULT_FILE") -ge 2 ]]; then
     CONSTRAINTS_TABLE="yes"
 fi
 clear_temp
@@ -90,7 +90,7 @@ do
     # get the table structure, including field comments
     echo "
     SELECT
-        COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_KEY, COLUMN_DEFAULT, EXTRA, COLUMN_COMMENT
+        COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_KEY, COLUMN_DEFAULT, CHARACTER_SET_NAME, COLLATION_NAME, EXTRA, COLUMN_COMMENT
     FROM
         information_schema.COLUMNS
     WHERE
@@ -100,7 +100,7 @@ do
 
     # execute and save the table structure result
     execute_sql
-    cp $SP_QUERY_RESULT_FILE "$SP_BUNDLE_PATH/rowsStructure.tsv"
+    cp "$SP_QUERY_RESULT_FILE" "$SP_BUNDLE_PATH/rowsStructure.tsv"
 
     clear_temp
 
@@ -109,7 +109,26 @@ do
 
     # execute and save the SHOW INDEXES result
     execute_sql
-    cp $SP_QUERY_RESULT_FILE "$SP_BUNDLE_PATH/rowsKeys.tsv"
+    cp "$SP_QUERY_RESULT_FILE" "$SP_BUNDLE_PATH/rowsKeys.tsv"
+
+    clear_temp
+
+    # get character set and collation name
+    echo "
+    SELECT
+	    CHARACTER_SET_NAME, TABLE_COLLATION
+    FROM
+      information_schema.TABLES, information_schema.COLLATION_CHARACTER_SET_APPLICABILITY
+    WHERE
+        COLLATION_NAME = TABLE_COLLATION
+    AND
+        TABLE_SCHEMA = '${SP_SELECTED_DATABASE}'
+    AND
+        TABLE_NAME = '${table}';" > "$SP_QUERY_FILE"
+
+    # execute and save the character set and collation name result
+    execute_sql
+    cp "$SP_QUERY_RESULT_FILE" "$SP_BUNDLE_PATH/rowsTableCharsetAndCollation.tsv"
 
     clear_temp
 
@@ -134,7 +153,7 @@ do
 
     fi
 
-    if [ "$CONSTRAINTS_TABLE" == "yes" ] && [ `cat $SP_QUERY_RESULT_STATUS_FILE` > 0 ]; then
+    if [ "$CONSTRAINTS_TABLE" == "yes" ] && [ `cat "$SP_QUERY_RESULT_STATUS_FILE"` -gt 0 ]; then
         clear_temp
 
         # send CONSTRAINTS query to Sequel Pro

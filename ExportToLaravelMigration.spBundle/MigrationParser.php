@@ -6,7 +6,7 @@ class MigrationParser
     /**
      * @var string
      */
-    protected $version = '1.5.0';
+    protected $version = '1.5.1';
 
     /**
      * @var array
@@ -22,6 +22,16 @@ class MigrationParser
      * @var array
      */
     protected $constraints = [];
+
+    /**
+     * @var string
+     */
+    protected $tableCharset = null;
+
+    /**
+     * @var string
+     */
+    protected $tableCollation = null;
 
     /**
      * @var array
@@ -60,19 +70,26 @@ class MigrationParser
     protected $constraintsFile;
 
     /**
+     * @var string
+     */
+    protected $tableCharsetAndCollationFile;
+
+    /**
      * MigrationParser constructor.
      *
      * @param string $tableName
      * @param string $structureFile
      * @param string $keysFile
      * @param string $constraintsFile
+     * @param string $tableCharsetAndCollationFile
      */
-    public function __construct($tableName, $structureFile, $keysFile, $constraintsFile)
+    public function __construct($tableName, $structureFile, $keysFile, $constraintsFile, $tableCharsetAndCollationFile)
     {
         $this->tableName = $tableName;
         $this->structureFile = $structureFile;
         $this->keysFile = $keysFile;
         $this->constraintsFile = $constraintsFile;
+        $this->tableCharsetAndCollationFile = $tableCharsetAndCollationFile;
     }
 
     public function makeMigration()
@@ -80,6 +97,7 @@ class MigrationParser
         $this->buildStructure();
         $this->buildKeys();
         $this->buildConstraints();
+        $this->buildTableCollationAndCharset();
 
         $indent8 = str_repeat(' ', 8);
         $indent12 = str_repeat(' ', 12);
@@ -88,6 +106,7 @@ class MigrationParser
         $structure = trim(implode($eol . $indent12, $this->formatStructure())) . $eol;
         $keys = trim(implode($eol . $indent12, $this->formatKeys())) . $eol;
         $constraints = trim(implode($eol . $indent12, $this->formatConstraints())) . $eol;
+        $tableCollationAndCharset = trim(implode($eol . $indent12, $this->formatTableCollationAndCharset())) . $eol;
         $extras = trim(implode($eol . $indent8, $this->formatExtras())) . $eol;
 
         $output = file_get_contents(__DIR__ . '/create.stub');
@@ -95,8 +114,8 @@ class MigrationParser
         $className = 'Create' . $this->studly($this->tableName) . 'Table';
 
         $output = str_replace(
-            [':VERSION:', 'DummyClass', 'DummyTable', '// structure', '// keys', '// constraints', '// extras'],
-            [$this->version, $className, $this->tableName, $structure, $keys, $constraints, $extras],
+            [':VERSION:', 'DummyClass', 'DummyTable', "// structure\n", "// keys\n", "// constraints\n", "// tableCollationAndCharset\n", "// extras\n"],
+            [$this->version, $className, $this->tableName, $structure, $keys, $constraints, $tableCollationAndCharset, $extras],
             $output
         );
 
@@ -119,7 +138,7 @@ class MigrationParser
 
         foreach ($rows as $row) {
 
-            list($field, $colType, $null, $key, $default, $extra, $comment) = explode("\t", $row);
+            list($field, $colType, $null, $key, $default, $characterSet, $collation, $extra, $comment) = explode("\t", $row);
 
             if (preg_match('#^(\w+)(\((.*?)\))?(.*?)?$#', $colType, $matches)) {
 
@@ -137,6 +156,8 @@ class MigrationParser
                     'field'    => $field,
                     'nullable' => ($null === 'YES'),
                     'default'  => ($default !== 'NULL') ? $default : null,
+                    'characterSet' => ($characterSet !== 'NULL') ? $characterSet : null,
+                    'collation' => ($collation !== 'NULL') ? $collation : null,
                     '_colType' => $colType,
                 ];
 
@@ -226,6 +247,12 @@ class MigrationParser
             }
             if ($data['nullable']) {
                 $temp .= '->nullable()';
+            }
+            if ($data['characterSet']) {
+                $temp .= "->charset('" . $data['characterSet'] ."')";
+            }
+            if ($data['collation']) {
+                $temp .= "->collation('" . $data['collation'] ."')";
             }
             if (isset($data['default'])) {
                 if ($isNumeric || ($method === 'enum' && is_numeric($data['default']))) {
@@ -345,6 +372,7 @@ class MigrationParser
         array_shift($rows);
 
         foreach ($rows as $row) {
+            $row = preg_replace('/\n+$/', '', $row);
             list($constraint, $colName, $refTable, $refColumn, $updateRule, $deleteRule) = explode("\t", $row);
 
             if (array_key_exists($constraint, $this->keys)) {
@@ -371,6 +399,38 @@ class MigrationParser
         }
 
         return array_filter($fields);
+    }
+
+    public function buildTableCollationAndCharset()
+    {
+        $this->constraints = [];
+
+        $rows = file($this->constraintsFile);
+        array_shift($rows);
+
+        $rows = file($this->tableCharsetAndCollationFile);
+        array_shift($rows);
+
+        if (!empty($rows)) {
+            $row = array_shift($rows);
+            $row = preg_replace('/\n+$/', '', $row);
+            list($this->tableCharset, $this->tableCollation) = explode("\t", $row);
+        }
+    }
+
+    public function formatTableCollationAndCharset()
+    {
+        $output = [];
+
+        if ($this->tableCharset) {
+            $output[] = '$table->charset = \'' . $this->tableCharset . "';";
+        }
+
+        if ($this->tableCollation) {
+            $output[] = '$table->collation = \'' . $this->tableCollation . "';";
+        }
+
+        return $output;
     }
 
     protected function copyToClipboard($content)
