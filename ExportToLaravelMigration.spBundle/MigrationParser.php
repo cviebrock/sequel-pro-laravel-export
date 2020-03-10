@@ -3,10 +3,12 @@
 class MigrationParser
 {
 
+    const TS_UPDATE_STRING = 'ON UPDATE CURRENT_TIMESTAMP';
+
     /**
      * @var string
      */
-    protected $version = '1.6.0';
+    protected $version = '1.7.0';
 
     /**
      * @var array
@@ -94,10 +96,10 @@ class MigrationParser
 
     public function makeMigration()
     {
+        $this->buildTableCollationAndCharset();
         $this->buildStructure();
         $this->buildKeys();
         $this->buildConstraints();
-        $this->buildTableCollationAndCharset();
 
         $indent8 = str_repeat(' ', 8);
         $indent12 = str_repeat(' ', 12);
@@ -118,6 +120,8 @@ class MigrationParser
             [$this->version, $className, $this->tableName, $structure, $keys, $constraints, $tableCollationAndCharset, $extras],
             $output
         );
+
+        $output = preg_replace("/^(\s*\R){2,}/m", "\n", $output);
 
         return $output;
     }
@@ -156,8 +160,8 @@ class MigrationParser
                     'field'    => $field,
                     'nullable' => ($null === 'YES'),
                     'default'  => ($default !== 'NULL') ? $default : null,
-                    'characterSet' => ($characterSet !== 'NULL') ? $characterSet : null,
-                    'collation' => ($collation !== 'NULL') ? $collation : null,
+                    'characterSet' => ($characterSet !== 'NULL' && $characterSet !== $this->tableCharset) ? $characterSet : null,
+                    'collation' => ($collation !== 'NULL' && $collation !== $this->tableCollation) ? $collation : null,
                     '_colType' => $colType,
                 ];
 
@@ -232,6 +236,11 @@ class MigrationParser
                 || $method === 'double'
                 || $method === 'float';
 
+            if ($method==='timestamp' && $data['args'] === self::TS_UPDATE_STRING) {
+                $data['default'] = $data['default'] . ' ' . $data['args'];
+                $data['args'] = null;
+            }
+
             $temp = '$table->' . $method;
             if ($data['field']) {
                 $temp .= '(\'' . $field . '\'';
@@ -259,8 +268,8 @@ class MigrationParser
                     $temp .= '->default(' . $data['default'] . ')';
                 } elseif ($method==='boolean') {
                     $temp .= '->default(' . ($data['default'] ? 'true' : 'false') . ')';
-                } elseif (strtolower(trim($data['default'])) === 'current_timestamp') {
-                    $temp .= '->default(\DB::raw(\'CURRENT_TIMESTAMP\'))';
+                } elseif (stripos(trim($data['default']), 'CURRENT_TIMESTAMP') !==false) {
+                    $temp .= '->default(\DB::raw(\'' . trim($data['default']) . '\'))';
                 } else {
                     $temp .= '->default(\'' . $this->trimStringQuotes($data['default']) . '\')';
                 }
@@ -405,9 +414,6 @@ class MigrationParser
     {
         $this->constraints = [];
 
-        $rows = file($this->constraintsFile);
-        array_shift($rows);
-
         $rows = file($this->tableCharsetAndCollationFile);
         array_shift($rows);
 
@@ -437,13 +443,6 @@ class MigrationParser
     {
         $cmd = 'echo ' . escapeshellarg($content) . ' | __CF_USER_TEXT_ENCODING=' . posix_getuid() . ':0x8000100:0x8000100 pbcopy';
         shell_exec($cmd);
-    }
-
-    protected function extractSize($string)
-    {
-        if (preg_match('#\(([^)]+)\)#', $string, $m)) {
-            return $m[1];
-        }
     }
 
     protected function escapeArray($array)
@@ -585,6 +584,9 @@ class MigrationParser
 
     protected function parseTimestamp($type, $args, $typeExtra, $extra)
     {
+        if (stripos($extra, self::TS_UPDATE_STRING) !==false) {
+            $args = self::TS_UPDATE_STRING;
+        }
         return $this->defaultParse('timestamp', $args);
     }
 

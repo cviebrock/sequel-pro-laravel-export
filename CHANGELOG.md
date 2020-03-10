@@ -1,9 +1,19 @@
 # Changelog
 
+## 1.7.0 - 09-Mar-2020
+
+- Adds support for timestamp columns with `ON UPDATE CURRENT_TIMESTAMP`
+- suppresses `->characterSet()` and `->collation()` on text columns
+  that share the table's default character set and/or collation  
+- removes some extra blank lines from the resulting migration file
+- a bit of code cleanup
+
+
 ## 1.6.0 - 20-Jan-2020
 
 - Adds charset and collation information for tables/columns
 - Fix for default values being double-quoted
+
 
 ## 1.5.0 - 24-Feb-2019
 
