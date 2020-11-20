@@ -175,7 +175,7 @@ class MigrationParser
                 } else {
                     $data['method'] = 'UNKNOWN:' . $type;
                 }
-                
+
                 $data['comment'] = trim(str_replace(["\r", "\n"], '', $comment));
 
                 $this->structure[$field] = $data;
@@ -325,7 +325,7 @@ class MigrationParser
                 $primaryColumn = reset($primary['columns']);
                 $field = $this->structure[$primaryColumn];
                 // and that column is an "increments" field ...
-                if (stripos($field['method'], 'increments') !== false) {
+                if (isset($field['args']['autoIncrement']) && $field['args']['autoIncrement'] === 'true') {
                     // then don't build the primary key, since Laravel takes care of it
                     unset($this->keys['PRIMARY']);
                 }
@@ -473,21 +473,48 @@ class MigrationParser
         return implode(', ', $array);
     }
 
+    protected function getAutoIncrementArgument($extra)
+    {
+        $arguments = [
+            'autoIncrement' => 'false',
+            'unsigned' => 'false'
+        ];
+
+        if (strpos($extra, 'auto_increment') !== false) {
+            $arguments['autoIncrement'] = 'true';
+        }
+
+        return $arguments;
+    }
+
+    protected function getUnsignedArgument($typeExtra)
+    {
+        $arguments = [
+            'unsigned' => 'false'
+        ];
+
+        if (strpos($typeExtra, 'unsigned') !== false) {
+            $arguments['unsigned'] = 'true';
+        }
+
+        return $arguments;
+    }
+
     protected function parseInt($type, $args, $typeExtra, $extra)
     {
         $method = $this->integerMaps[$type];
-        if (strpos($extra, 'auto_increment') !== false) {
-            $method = str_replace('nteger', 'ncrements', $method);
-        } elseif (strpos($typeExtra, 'unsigned') !== false) {
-            $method = 'unsigned' . ucfirst($method);
-        }
+        $args = array_merge(
+            $this->getAutoIncrementArgument($extra),
+            $this->getUnsignedArgument($typeExtra)
+        );
 
-        return $this->defaultParse($method);
+        return $this->defaultParse($method, $args);
     }
 
     protected function parseBigint($type, $args, $typeExtra, $extra)
     {
         return $this->parseInt($type, $args, $typeExtra, $extra);
+
     }
 
     protected function parseMediumint($type, $args, $typeExtra, $extra)
@@ -534,17 +561,26 @@ class MigrationParser
 
     protected function parseDecimal($type, $args, $typeExtra, $extra)
     {
-        return $this->defaultParse('decimal', $args);
+        return $this->defaultParse('decimal', array_merge(
+            $args,
+            $this->getUnsignedArgument($typeExtra)
+        ));
     }
 
     protected function parseDouble($type, $args, $typeExtra, $extra)
     {
-        return $this->defaultParse('double', $args);
+        return $this->defaultParse('double', array_merge(
+            $args,
+            $this->getUnsignedArgument($typeExtra)
+        ));
     }
 
     protected function parseFloat($type, $args, $typeExtra, $extra)
     {
-        return $this->defaultParse('float', $args);
+        return $this->defaultParse('float', array_merge(
+            $args,
+            $this->getUnsignedArgument($typeExtra)
+        ));
     }
 
     protected function parseLongtext($type, $args, $typeExtra, $extra)
