@@ -8,7 +8,7 @@ class MigrationParser
     /**
      * @var string
      */
-    protected $version = '1.7.0';
+    protected $version = '1.8.0';
 
     /**
      * @var array
@@ -116,8 +116,26 @@ class MigrationParser
         $className = 'Create' . $this->studly($this->tableName) . 'Table';
 
         $output = str_replace(
-            [':VERSION:', 'DummyClass', 'DummyTable', "// structure\n", "// keys\n", "// constraints\n", "// tableCollationAndCharset\n", "// extras\n"],
-            [$this->version, $className, $this->tableName, $structure, $keys, $constraints, $tableCollationAndCharset, $extras],
+            [
+                ':VERSION:',
+                'DummyClass',
+                'DummyTable',
+                "// structure\n",
+                "// keys\n",
+                "// constraints\n",
+                "// tableCollationAndCharset\n",
+                "// extras\n",
+            ],
+            [
+                $this->version,
+                $className,
+                $this->tableName,
+                $structure,
+                $keys,
+                $constraints,
+                $tableCollationAndCharset,
+                $extras,
+            ],
             $output
         );
 
@@ -142,7 +160,8 @@ class MigrationParser
 
         foreach ($rows as $row) {
 
-            list($field, $colType, $null, $key, $default, $characterSet, $collation, $extra, $comment) = explode("\t", $row);
+            list($field, $colType, $null, $key, $default, $characterSet, $collation, $extra, $comment) = explode("\t",
+                $row);
 
             if (preg_match('#^(\w+)(\((.*?)\))?(.*?)?$#', $colType, $matches)) {
 
@@ -157,12 +176,12 @@ class MigrationParser
                 }
 
                 $data = [
-                    'field'    => $field,
-                    'nullable' => ($null === 'YES'),
-                    'default'  => ($default !== 'NULL') ? $default : null,
+                    'field'        => $field,
+                    'nullable'     => ($null === 'YES'),
+                    'default'      => ($default !== 'NULL') ? $default : null,
                     'characterSet' => ($characterSet !== 'NULL' && $characterSet !== $this->tableCharset) ? $characterSet : null,
-                    'collation' => ($collation !== 'NULL' && $collation !== $this->tableCollation) ? $collation : null,
-                    '_colType' => $colType,
+                    'collation'    => ($collation !== 'NULL' && $collation !== $this->tableCollation) ? $collation : null,
+                    '_colType'     => $colType,
                 ];
 
                 $method = 'parse' . ucfirst($type);
@@ -231,44 +250,52 @@ class MigrationParser
         foreach ($this->structure as $field => $data) {
 
             $method = $data['method'];
-            $isNumeric = (stripos($method, 'integer') !== false)
-                || $method === 'decimal'
-                || $method === 'double'
-                || $method === 'float';
+            $isNumeric = $this->isNumeric($method);
 
-            if ($method==='timestamp' && $data['args'] === self::TS_UPDATE_STRING) {
-                $data['default'] = $data['default'] . ' ' . $data['args'];
+            if ($method === 'timestamp' && $data['args'] === self::TS_UPDATE_STRING) {
+                $data['default'] .= ' ' . $data['args'];
                 $data['args'] = null;
             }
 
             $temp = '$table->' . $method;
             if ($data['field']) {
                 $temp .= '(\'' . $field . '\'';
-                if ($method === 'enum') {
-                    $temp .= ', [' . implode(', ', (array)$data['args']) . '])';
+                if ($method === 'enum' || $method === 'set') {
+                    $temp .= ', [' . implode(', ', (array) $data['args']) . '])';
                 } elseif ($data['args']) {
-                    $temp .= ', ' . implode(', ', (array)$data['args']) . ')';
+                    $temp .= ', ' . implode(', ', (array) $data['args']) . ')';
                 } else {
                     $temp .= ')';
                 }
             } else {
                 $temp .= '()';
             }
+            if ($data['autoIncrement']) {
+                if (stripos($temp, 'nteger')!==false) {
+                    $temp = str_replace('nteger', 'ncrements', $temp);
+                    $data['unsigned'] = false;
+                } else {
+                    $temp .= '->autoIncrement()';
+                }
+            }
+            if ($data['unsigned']) {
+                $temp .= '->unsigned()';
+            }
             if ($data['nullable']) {
                 $temp .= '->nullable()';
             }
             if ($data['characterSet']) {
-                $temp .= "->charset('" . $data['characterSet'] ."')";
+                $temp .= "->charset('" . $data['characterSet'] . "')";
             }
             if ($data['collation']) {
-                $temp .= "->collation('" . $data['collation'] ."')";
+                $temp .= "->collation('" . $data['collation'] . "')";
             }
             if (isset($data['default'])) {
-                if ($isNumeric || ($method === 'enum' && is_numeric($data['default']))) {
+                if ($isNumeric || (($method === 'enum' || $method === 'set') && is_numeric($data['default']))) {
                     $temp .= '->default(' . $data['default'] . ')';
-                } elseif ($method==='boolean') {
+                } elseif ($method === 'boolean') {
                     $temp .= '->default(' . ($data['default'] ? 'true' : 'false') . ')';
-                } elseif (stripos(trim($data['default']), 'CURRENT_TIMESTAMP') !==false) {
+                } elseif (stripos(trim($data['default']), 'CURRENT_TIMESTAMP') !== false) {
                     $temp .= '->default(\DB::raw(\'' . trim($data['default']) . '\'))';
                 } else {
                     $temp .= '->default(\'' . $this->trimStringQuotes($data['default']) . '\')';
@@ -294,7 +321,8 @@ class MigrationParser
         array_shift($rows);
 
         foreach ($rows as $row) {
-            list($table, $nonUnique, $keyName, $seq, $colName, $collation, $cardinality, $subPart, $packed, $null, $indexType, $extra) = explode("\t", $row, 12);
+            list($table, $nonUnique, $keyName, $seq, $colName, $collation, $cardinality, $subPart, $packed, $null, $indexType, $extra) = explode("\t",
+                $row, 12);
 
             if ($indexType === 'FULLTEXT') {
                 if (!array_key_exists($keyName, $this->extras)) {
@@ -372,7 +400,6 @@ class MigrationParser
         return array_filter($fields);
     }
 
-
     public function buildConstraints()
     {
         $this->constraints = [];
@@ -396,8 +423,8 @@ class MigrationParser
     {
         $fields = [];
         foreach ($this->constraints as $field => $data) {
-            $colNames   = $this->escapeArray(array_map(function ($entry) { return $entry['colName']; }, $data));
-            $refColumns  = $this->escapeArray(array_map(function ($entry) { return $entry['refColumn']; }, $data));
+            $colNames = $this->escapeArray(array_map(function($entry) { return $entry['colName']; }, $data));
+            $refColumns = $this->escapeArray(array_map(function($entry) { return $entry['refColumn']; }, $data));
             $temp = '$table->foreign(' . $colNames . ', \'' . $field . '\')' .
                 '->references(' . $refColumns . ')' .
                 '->on(\'' . $data[0]['refTable'] . '\')' .
@@ -447,7 +474,7 @@ class MigrationParser
 
     protected function escapeArray($array)
     {
-        $array = (array)$array;
+        $array = (array) $array;
         array_walk($array, function(&$value, $idx) {
             if (!is_numeric($value)) {
                 $value = '\'' . str_replace('\'', '\\\'', $value) . '\'';
@@ -465,56 +492,64 @@ class MigrationParser
 
     protected function escapeColumnList($array)
     {
-        $array = (array)$array;
+        $array = (array) $array;
         array_walk($array, function(&$value, $idx) {
-                $value = '`' . $value . '`';
+            $value = '`' . $value . '`';
         });
 
         return implode(', ', $array);
     }
 
-    protected function getAutoIncrementArgument($extra)
+    // protected function getAutoIncrementArgument($extra)
+    // {
+    //     $arguments = [
+    //         'autoIncrement' => false,
+    //     ];
+    //
+    //     if (strpos($extra, 'auto_increment') !== false) {
+    //         $arguments['autoIncrement'] = true;
+    //     }
+    //
+    //     return $arguments;
+    // }
+    //
+
+    protected function isAutoIncrement($extra)
     {
-        $arguments = [
-            'autoIncrement' => 'false',
-            'unsigned' => 'false'
-        ];
-
-        if (strpos($extra, 'auto_increment') !== false) {
-            $arguments['autoIncrement'] = 'true';
-        }
-
-        return $arguments;
+        return strpos($extra, 'auto_increment') !== false;
     }
 
-    protected function getUnsignedArgument($typeExtra)
+    // protected function getUnsignedArgument($typeExtra)
+    // {
+    //     $arguments = [
+    //         'unsigned' => false
+    //     ];
+    //
+    //     if (strpos($typeExtra, 'unsigned') !== false) {
+    //         $arguments['unsigned'] = true;
+    //     }
+    //
+    //     return $arguments;
+    // }
+
+    protected function isUnsigned($typeExtra)
     {
-        $arguments = [
-            'unsigned' => 'false'
-        ];
-
-        if (strpos($typeExtra, 'unsigned') !== false) {
-            $arguments['unsigned'] = 'true';
-        }
-
-        return $arguments;
+        return strpos($typeExtra, 'unsigned') !== false;
     }
 
     protected function parseInt($type, $args, $typeExtra, $extra)
     {
-        $method = $this->integerMaps[$type];
-        $args = array_merge(
-            $this->getAutoIncrementArgument($extra),
-            $this->getUnsignedArgument($typeExtra)
-        );
-
-        return $this->defaultParse($method, $args);
+        return [
+            'method'        => $this->integerMaps[$type],
+            'args'          => null,
+            'autoIncrement' => $this->isAutoIncrement($extra),
+            'unsigned'      => $this->isUnsigned($typeExtra),
+        ];
     }
 
     protected function parseBigint($type, $args, $typeExtra, $extra)
     {
         return $this->parseInt($type, $args, $typeExtra, $extra);
-
     }
 
     protected function parseMediumint($type, $args, $typeExtra, $extra)
@@ -531,7 +566,8 @@ class MigrationParser
     {
         if ($args === 1) {
             $method = 'boolean';
-            $args = $unsigned = null;
+            $args = null;
+            $unsigned = false;
 
             return compact('method', 'args', 'unsigned');
         }
@@ -561,26 +597,49 @@ class MigrationParser
 
     protected function parseDecimal($type, $args, $typeExtra, $extra)
     {
-        return $this->defaultParse('decimal', array_merge(
-            $args,
-            $this->getUnsignedArgument($typeExtra)
-        ));
+        return [
+            'method'   => 'decimal',
+            'args'     => $args,
+            'unsigned' => $this->isUnsigned($typeExtra),
+        ];
+    }
+
+    protected function parseNumeric($type, $args, $typeExtra, $extra)
+    {
+        return $this->parseDecimal($type, $args, $typeExtra, $extra);
+    }
+
+    protected function parseFixed($type, $args, $typeExtra, $extra)
+    {
+        return $this->parseDecimal($type, $args, $typeExtra, $extra);
     }
 
     protected function parseDouble($type, $args, $typeExtra, $extra)
     {
-        return $this->defaultParse('double', array_merge(
-            $args,
-            $this->getUnsignedArgument($typeExtra)
-        ));
+        return [
+            'method'   => 'double',
+            'args'     => $args,
+            'unsigned' => $this->isUnsigned($typeExtra),
+        ];
+    }
+
+    protected function parseDoublePrecision($type, $args, $typeExtra, $extra)
+    {
+        return $this->parseDouble($type, $args, $typeExtra, $extra);
+    }
+
+    protected function parseReal($type, $args, $typeExtra, $extra)
+    {
+        return $this->parseDouble($type, $args, $typeExtra, $extra);
     }
 
     protected function parseFloat($type, $args, $typeExtra, $extra)
     {
-        return $this->defaultParse('float', array_merge(
-            $args,
-            $this->getUnsignedArgument($typeExtra)
-        ));
+        return [
+            'method'   => 'float',
+            'args'     => $args,
+            'unsigned' => $this->isUnsigned($typeExtra),
+        ];
     }
 
     protected function parseLongtext($type, $args, $typeExtra, $extra)
@@ -613,6 +672,11 @@ class MigrationParser
         return $this->defaultParse('enum', $args);
     }
 
+    protected function parseSet($type, $args, $typeExtra, $extra)
+    {
+        return $this->defaultParse('set', $args);
+    }
+
     protected function parseTime($type, $args, $typeExtra, $extra)
     {
         return $this->defaultParse('time', $args);
@@ -620,7 +684,7 @@ class MigrationParser
 
     protected function parseTimestamp($type, $args, $typeExtra, $extra)
     {
-        if (stripos($extra, self::TS_UPDATE_STRING) !==false) {
+        if (stripos($extra, self::TS_UPDATE_STRING) !== false) {
             $args = self::TS_UPDATE_STRING;
         }
         return $this->defaultParse('timestamp', $args);
@@ -641,5 +705,14 @@ class MigrationParser
         return trim(
             trim($string, '"\'')
         );
+    }
+
+    private function isNumeric($method)
+    {
+        return (stripos($method, 'integer') !== false)
+            || $method === 'decimal'
+            || $method === 'double'
+            || $method === 'float'
+            || $method === 'real';
     }
 }

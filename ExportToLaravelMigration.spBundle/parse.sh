@@ -96,7 +96,8 @@ do
     WHERE
         TABLE_SCHEMA = '${SP_SELECTED_DATABASE}'
     AND
-        TABLE_NAME = '${table}';" > "$SP_QUERY_FILE"
+        TABLE_NAME = '${table}'
+    ORDER BY ORDINAL_POSITION;" > "$SP_QUERY_FILE"
 
     # execute and save the table structure result
     execute_sql
