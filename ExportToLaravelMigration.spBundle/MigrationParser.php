@@ -8,7 +8,7 @@ class MigrationParser
     /**
      * @var string
      */
-    protected $version = '1.8.0';
+    protected $version = '1.8.1';
 
     /**
      * @var array
