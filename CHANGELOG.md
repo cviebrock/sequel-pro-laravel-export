@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.8.1 - 26-Nov-2020
+
+- Minor tweak to unsigned or auto-incrementing integers to use
+  the more compact migration methods
+
+
 ## 1.8.0 - 26-Nov-2020
 
 - Reworked handling of signed autoincrement integers and

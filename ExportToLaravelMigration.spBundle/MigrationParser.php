@@ -251,6 +251,15 @@ class MigrationParser
 
             $method = $data['method'];
             $isNumeric = $this->isNumeric($method);
+            $isInteger = $this->isInteger($method);
+
+            if ($isInteger) {
+                if ($data['autoIncrement']) {
+                    $method = str_replace('nteger', 'ncrements', $method);
+                } elseif ($data['unsigned']) {
+                    $method = 'unsigned' . ucfirst($method);
+                }
+            }
 
             if ($method === 'timestamp' && $data['args'] === self::TS_UPDATE_STRING) {
                 $data['default'] .= ' ' . $data['args'];
@@ -270,16 +279,13 @@ class MigrationParser
             } else {
                 $temp .= '()';
             }
-            if ($data['autoIncrement']) {
-                if (stripos($temp, 'nteger')!==false) {
-                    $temp = str_replace('nteger', 'ncrements', $temp);
-                    $data['unsigned'] = false;
-                } else {
+            if (!$isInteger) {
+                if ($data['autoIncrement']) {
                     $temp .= '->autoIncrement()';
                 }
-            }
-            if ($data['unsigned']) {
-                $temp .= '->unsigned()';
+                if ($data['unsigned']) {
+                    $temp .= '->unsigned()';
+                }
             }
             if ($data['nullable']) {
                 $temp .= '->nullable()';
@@ -707,9 +713,14 @@ class MigrationParser
         );
     }
 
+    private function isInteger($method)
+    {
+        return stripos($method, 'integer') !== false;
+    }
+
     private function isNumeric($method)
     {
-        return (stripos($method, 'integer') !== false)
+        return $this->isInteger($method)
             || $method === 'decimal'
             || $method === 'double'
             || $method === 'float'

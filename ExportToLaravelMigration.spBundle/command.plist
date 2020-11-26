@@ -15,13 +15,13 @@
 	<key>keyEquivalent</key>
 	<string>^~@m</string>
 	<key>name</key>
-	<string>Export To Laravel Migration</string>
+	<string>Export To Laravel Migration(s)</string>
 	<key>output</key>
 	<string>showashtml</string>
 	<key>scope</key>
 	<string>general</string>
 	<key>tooltip</key>
-	<string>Export the selected table(s) to Laravel migration file on the Desktop</string>
+	<string>Export the selected table(s) to Laravel migration file(s) in a Desktop folder</string>
 	<key>uuid</key>
 	<string>BAAD749B-F050-4F02-879C-333B581D2E23</string>
 </dict>
