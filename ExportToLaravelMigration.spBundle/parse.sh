@@ -117,7 +117,7 @@ do
     # get character set and collation name
     echo "
     SELECT
-	    CHARACTER_SET_NAME, TABLE_COLLATION
+        CHARACTER_SET_NAME, TABLE_COLLATION
     FROM
       information_schema.TABLES, information_schema.COLLATION_CHARACTER_SET_APPLICABILITY
     WHERE
@@ -179,6 +179,7 @@ do
         echo -n "" > "$SP_BUNDLE_PATH/rowsConstraints.tsv"
     fi
 
+
     # process the results and save to the desktop
     FILENAME=$(date "+%Y_%m_%d_%H%M%S_create_${table}_table.php")
     /usr/bin/php "$SP_BUNDLE_PATH/parse.php" "${table}" > $DESTDIR/$FILENAME
@@ -186,6 +187,34 @@ do
     # clean up
     clear_temp
 
+# end loop through tables
+done
+
+# Loop through tables
+for table in "${tables[@]}"
+do
+    # get the table foreign key
+
+    echo "SELECT 
+      TABLE_NAME,COLUMN_NAME,CONSTRAINT_NAME, REFERENCED_TABLE_NAME,REFERENCED_COLUMN_NAME
+    FROM
+      INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+    WHERE
+      REFERENCED_TABLE_SCHEMA = '${SP_SELECTED_DATABASE}' AND TABLE_NAME = '${table}';" > "$SP_QUERY_FILE"
+
+    # execute and save the table structure result
+    execute_sql
+    cp $SP_QUERY_RESULT_FILE "$SP_BUNDLE_PATH/rowsForeignStructure.tsv"
+
+    hasForeignKey=`cat "$SP_BUNDLE_PATH/rowsForeignStructure.tsv" | grep -v "TABLE_NAME" | wc -l | awk '{print $1}'`;
+    if [ $hasForeignKey != 0 ]; then
+        FILENAME=$(date "+%Y_%m_%d_%H%M%S-0_add_fk_to_${table}_table.php")
+        /usr/bin/php "$SP_BUNDLE_PATH/parse.php" "${table}" "foreignkey" > $DESTDIR/$FILENAME
+        echo "<p>Migration Foreing Key saved: <a href=\"SP-REVEAL-FILE://$DESTDIR/$FILENAME\">$FILENAME</a></p>"
+        # clean up
+        clear_temp
+    fi
+    clear_temp
 # end loop through tables
 done
 

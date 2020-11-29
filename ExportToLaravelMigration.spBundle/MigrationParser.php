@@ -77,6 +77,16 @@ class MigrationParser
     protected $tableCharsetAndCollationFile;
 
     /**
+     * @var string
+     */
+    protected $foreignStructureFile;
+
+    /**
+     * @var string
+     */
+    protected $hasForeign;
+
+    /**
      * MigrationParser constructor.
      *
      * @param string $tableName
@@ -84,14 +94,18 @@ class MigrationParser
      * @param string $keysFile
      * @param string $constraintsFile
      * @param string $tableCharsetAndCollationFile
+     * @param string $foreignStructureFile
+     * @param string $hasForeign
      */
-    public function __construct($tableName, $structureFile, $keysFile, $constraintsFile, $tableCharsetAndCollationFile)
+    public function __construct($tableName, $structureFile, $keysFile, $constraintsFile, $tableCharsetAndCollationFile, $foreignStructureFile, $hasForeign)
     {
         $this->tableName = $tableName;
         $this->structureFile = $structureFile;
         $this->keysFile = $keysFile;
         $this->constraintsFile = $constraintsFile;
         $this->tableCharsetAndCollationFile = $tableCharsetAndCollationFile;
+        $this->foreignStructureFile = $foreignStructureFile;
+        $this->hasForeign = $hasForeign;
     }
 
     public function makeMigration()
@@ -110,38 +124,92 @@ class MigrationParser
         $constraints = trim(implode($eol . $indent12, $this->formatConstraints())) . $eol;
         $tableCollationAndCharset = trim(implode($eol . $indent12, $this->formatTableCollationAndCharset())) . $eol;
         $extras = trim(implode($eol . $indent8, $this->formatExtras())) . $eol;
+        $foreign = trim(implode($eol . $indent12, $this->formatForeign())) . $eol;
+        $foreignDrop = trim(implode($eol . $indent12, $this->formatForeignDrop())) . $eol;
+        if ($this->hasForeign == "true") {
+            $className = 'AddFkTo' . $this->studly($this->tableName) . 'Table';
+            $output = file_get_contents(__DIR__ . '/table.stub');
+            $output = str_replace(
+                [
+                    ':VERSION:',
+                    'DummyClass',
+                    'DummyTable',
+                    "// foreign\n",
+                    "// foreignDrop\n",                
+                ],
+                [
+                    $this->version,
+                    $className,
+                    $this->tableName,
+                    $foreign,
+                    $foreignDrop,
+                ],
+                $output
+            );
+        } else {
+            $className = 'Create' . $this->studly($this->tableName) . 'Table';
+            $output = file_get_contents(__DIR__ . '/create.stub');
+            $output = str_replace(
+                [
+                    ':VERSION:',
+                    'DummyClass',
+                    'DummyTable',
+                    "// structure\n",
+                    "// keys\n",
+                    "// constraints\n",
+                    "// tableCollationAndCharset\n",
+                    "// extras\n",
+                ],
+                [
+                    $this->version,
+                    $className,
+                    $this->tableName,
+                    $structure,
+                    $keys,
+                    $constraints,
+                    $tableCollationAndCharset,
+                    $extras,
+                ],
+                $output
+            );
+        }
 
-        $output = file_get_contents(__DIR__ . '/create.stub');
-
-        $className = 'Create' . $this->studly($this->tableName) . 'Table';
-
-        $output = str_replace(
-            [
-                ':VERSION:',
-                'DummyClass',
-                'DummyTable',
-                "// structure\n",
-                "// keys\n",
-                "// constraints\n",
-                "// tableCollationAndCharset\n",
-                "// extras\n",
-            ],
-            [
-                $this->version,
-                $className,
-                $this->tableName,
-                $structure,
-                $keys,
-                $constraints,
-                $tableCollationAndCharset,
-                $extras,
-            ],
-            $output
-        );
 
         $output = preg_replace("/^(\s*\R){2,}/m", "\n", $output);
 
         return $output;
+    }
+
+    public function formatForeign()
+    {
+        $fields = [];
+
+        $rows = file($this->foreignStructureFile);
+        array_shift($rows);
+
+        foreach ($rows as $row) {
+            list($table, $colName, $constName, $refTable, $refColumnName) = explode("\t",
+                $row, 5);
+            $fields[] = '$table->unsignedBigInteger(\''. trim($colName) .'\')->change();';
+            $fields[] = '$table->foreign(\''. trim($colName) .'\')->references(\''. trim($refColumnName) .'\')->on(\''. trim($refTable) .'\');';
+        }
+        return array_filter($fields);
+    }
+
+    public function formatForeignDrop()
+    {
+        $fields = [];
+
+        $rows = file($this->foreignStructureFile);
+        array_shift($rows);
+
+        foreach ($rows as $row) {
+            list($table, $colName, $constName, $refTable, $refColumnName) = explode("\t",
+                $row, 5);
+            //$table->dropForeign('local_table_foreign_id_foreign');
+            $fields[] = '$table->dropForeign(\''. trim($table) .'_'. trim($colName) .'_foreign\');';
+        }
+        return array_filter($fields);
     }
 
     protected function studly($value)
@@ -241,6 +309,24 @@ class MigrationParser
             $this->structure['remember_token']['default'] = null;
             $this->structure['remember_token']['nullable'] = false;
             $this->structure['remember_token']['field'] = null;
+        }
+
+        // look for id primary key
+
+        if (
+            array_key_exists('id', $this->structure)
+            && $this->structure['id']['method'] === 'integer'
+            && $this->structure['id']['autoIncrement'] === true
+            && $this->structure['id']['args'] === null
+        ) {
+            $this->structure['id']['method'] = 'id';
+            $this->structure['id']['args'] = null;
+            $this->structure['id']['default'] = null;
+            $this->structure['id']['nullable'] = false;
+            $this->structure['id']['field'] = null;
+            $this->structure['id']['comment'] = null;
+            $this->structure['id']['autoIncrement'] = null;
+            $this->structure['id']['unsigned'] = null;
         }
     }
 
@@ -359,7 +445,7 @@ class MigrationParser
                 $primaryColumn = reset($primary['columns']);
                 $field = $this->structure[$primaryColumn];
                 // and that column is an "increments" field ...
-                if (isset($field['args']['autoIncrement']) && $field['args']['autoIncrement'] === 'true') {
+                if (isset($field['autoIncrement']) && $field['autoIncrement'] == '1') {
                     // then don't build the primary key, since Laravel takes care of it
                     unset($this->keys['PRIMARY']);
                 }
@@ -375,7 +461,7 @@ class MigrationParser
             $columns = $this->escapeArray($data['columns']);
 
             if ($field === 'PRIMARY') {
-                $fields[$field] = sprintf('$table->primary(%s);', $columns);
+                //$fields[$field] = sprintf('$table->primary(%s);', $columns);
             } else {
                 $fields[$field] = sprintf('$table->%s(%s, \'%s\');',
                     $data['method'],
