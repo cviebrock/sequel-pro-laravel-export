@@ -13,7 +13,7 @@ execute_sql()
     # execute the SQL statement; the result will be available in the file $SP_QUERY_RESULT_FILE
     open "sequelpro://$SP_PROCESS_ID@passToDoc/ExecuteQuery"
 
-    # wait for Sequel Pro; status file will be written to disk if query was finished
+    # wait for results; status file will be written to disk if query was finished
     while [ 1 ]
     do
         [[ -e "$SP_QUERY_RESULT_STATUS_FILE" ]] && break
@@ -105,7 +105,7 @@ do
 
     clear_temp
 
-    # send SHOW INDEXES query to Sequel Pro
+    # build SHOW INDEXES query
     echo "SHOW INDEXES FROM \`${table}\`" > "$SP_QUERY_FILE"
 
     # execute and save the SHOW INDEXES result
@@ -157,7 +157,7 @@ do
     if [ "$CONSTRAINTS_TABLE" == "yes" ] && [ `cat "$SP_QUERY_RESULT_STATUS_FILE"` -gt 0 ]; then
         clear_temp
 
-        # send CONSTRAINTS query to Sequel Pro
+        # build CONSTRAINTS query
         echo "
         SELECT
             kcu.CONSTRAINT_NAME, kcu.COLUMN_NAME, kcu.REFERENCED_TABLE_NAME, kcu.REFERENCED_COLUMN_NAME, rc.UPDATE_RULE, rc.DELETE_RULE
