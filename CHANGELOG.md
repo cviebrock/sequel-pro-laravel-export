@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.0 - 02-Dec-2020
+
+- Bundle now supports [Sequel Pro](https://www.sequelpro.com/)
+  and [Sequel Ace](https://sequel-ace.com/)
+
+
 ## 1.8.1 - 26-Nov-2020
 
 - Minor tweak to unsigned or auto-incrementing integers to use
