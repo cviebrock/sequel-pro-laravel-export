@@ -1,4 +1,3 @@
 *.tsv
-/ExportToLaravelMigration.spBundle/0
 .idea
-.DS_Store
+/build/
