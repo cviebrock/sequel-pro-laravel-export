@@ -10,7 +10,7 @@ Laravel migration files from existing tables.
 1. Download the latest release and unzip the appropriate file,
    depending on whether you are using Sequel Pro or Sequel Ace.
 2. Double-click on the bundle package to install the bundle.
-3. Launch Sequel Pro!
+3. Launch Sequel Pro or Ace!
 
 
 ## Installation from Source
@@ -31,6 +31,8 @@ You can then move this file into your Laravel project (usually `/database/migrat
 
 
 ## Caveats
+
+The Sequel Ace bundle will only work with version 3.0.0 and later of Sequel Ace.
 
 Auto-generated migration files will likely need manual adjustments.  Be sure to look at the code before
 running `artisan migrate`!
