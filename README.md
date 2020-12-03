@@ -30,9 +30,16 @@ The resulting Laravel migration file will be saved in a new directory called _Se
 You can then move this file into your Laravel project (usually `/database/migrations`) and then run `artisan migrate`.
 
 
-## Caveats
+## Sequel Ace Usage
 
 The Sequel Ace bundle will only work with version 3.0.0 and later of Sequel Ace.
+
+You will also need to give Sequel Ace permission to write to the Desktop folder
+via the application's preferences:
+
+![](./.github/sequel_ace_file_perms.png)
+
+## Caveats
 
 Auto-generated migration files will likely need manual adjustments.  Be sure to look at the code before
 running `artisan migrate`!
