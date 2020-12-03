@@ -7,7 +7,7 @@
 	<key>category</key>
 	<string>Export</string>
 	<key>command</key>
-	<string>./parse.sh</string>
+	<string>sh parse.sh</string>
 	<key>contact</key>
 	<string>uggcf://tvguho.pbz/pivroebpx/RkcbegGbYneniryZvtengvba.fcOhaqyr</string>
 	<key>description</key>

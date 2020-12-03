@@ -18,7 +18,7 @@ mkdir -p "${BUILD}/${BUNDLE_SP}"
 # copy source to Sequel Ace and Sequel Pro directories
 cd "${SRC}"
 cp * "${BUILD}/${BUNDLE_SA}"
-cp * "${BUILD}/${BUNDLE_SA}"
+cp * "${BUILD}/${BUNDLE_SP}"
 cd "${DIR}"
 
 # perform required search-and-replace for Pro->Ace changes
