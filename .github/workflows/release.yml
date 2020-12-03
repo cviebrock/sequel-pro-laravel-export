@@ -12,8 +12,10 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
+
       - name: Build Assets
         run: ./build.sh
+        
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -24,6 +26,7 @@ jobs:
           release_name: Release ${{ github.ref }}
           draft: false
           prerelease: false
+
       - name: Upload Assets
         id: upload-assets
         uses: alexellis/upload-assets@0.2.2
