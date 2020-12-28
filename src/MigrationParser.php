@@ -124,10 +124,11 @@ class MigrationParser
         $constraints = trim(implode($eol . $indent12, $this->formatConstraints())) . $eol;
         $tableCollationAndCharset = trim(implode($eol . $indent12, $this->formatTableCollationAndCharset())) . $eol;
         $extras = trim(implode($eol . $indent8, $this->formatExtras())) . $eol;
-        $foreign = trim(implode($eol . $indent12, $this->formatForeign())) . $eol;
-        $foreignDrop = trim(implode($eol . $indent12, $this->formatForeignDrop())) . $eol;
-        if ($this->hasForeign == "true") {
-            $className = 'AddFkTo' . $this->studly($this->tableName) . 'Table';
+
+        if ($this->hasForeign === "true") {
+            $foreign = trim(implode($eol . $indent12, $this->formatForeign())) . $eol;
+            $foreignDrop = trim(implode($eol . $indent12, $this->formatForeignDrop())) . $eol;
+            $className = 'AddForeignKeyTo' . $this->studly($this->tableName) . 'Table';
             $output = file_get_contents(__DIR__ . '/foreign_key.stub');
             $output = str_replace(
                 [
@@ -135,7 +136,7 @@ class MigrationParser
                     'DummyClass',
                     'DummyTable',
                     "// foreign\n",
-                    "// foreignDrop\n",                
+                    "// foreignDrop\n",
                 ],
                 [
                     $this->version,
@@ -190,7 +191,6 @@ class MigrationParser
         foreach ($rows as $row) {
             list($table, $colName, $constName, $refTable, $refColumnName) = explode("\t",
                 $row, 5);
-            $fields[] = '$table->unsignedBigInteger(\''. trim($colName) .'\')->change();';
             $fields[] = '$table->foreign(\''. trim($colName) .'\')->references(\''. trim($refColumnName) .'\')->on(\''. trim($refTable) .'\');';
         }
         return array_filter($fields);
@@ -206,7 +206,6 @@ class MigrationParser
         foreach ($rows as $row) {
             list($table, $colName, $constName, $refTable, $refColumnName) = explode("\t",
                 $row, 5);
-            //$table->dropForeign('local_table_foreign_id_foreign');
             $fields[] = '$table->dropForeign(\''. trim($table) .'_'. trim($colName) .'_foreign\');';
         }
         return array_filter($fields);
@@ -312,7 +311,6 @@ class MigrationParser
         }
 
         // look for id primary key
-
         if (
             array_key_exists('id', $this->structure)
             && $this->structure['id']['method'] === 'integer'
@@ -395,7 +393,7 @@ class MigrationParser
             }
 
             // If isn't empty, set the comment
-            if ($data['comment'] !== '') {
+            if ($data['comment'] !== '' || $data['comment'] !== null) {
                 $temp .= '->comment(\'' . addslashes($data['comment']) . '\')';
             }
 
@@ -445,7 +443,7 @@ class MigrationParser
                 $primaryColumn = reset($primary['columns']);
                 $field = $this->structure[$primaryColumn];
                 // and that column is an "increments" field ...
-                if (isset($field['autoIncrement']) && $field['autoIncrement'] == '1') {
+                if (isset($field['args']['autoIncrement']) && $field['args']['autoIncrement'] === 'true') {
                     // then don't build the primary key, since Laravel takes care of it
                     unset($this->keys['PRIMARY']);
                 }

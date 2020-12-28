@@ -1,9 +1,11 @@
 <?php
+
 require_once(__DIR__ . '/MigrationParser.php');
 $tableName = $argv[1];
 $hasForeign = "false";
+
 if (isset($argv[2])) {
-	$hasForeign = "true";
+    $hasForeign = "true";
 }
 
 $m = new MigrationParser(

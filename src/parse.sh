@@ -190,12 +190,14 @@ do
 # end loop through tables
 done
 
+# ensure timestamps for any foreign key migrations occur after creation migrations
+sleep 1
+
 # Loop through tables
 for table in "${tables[@]}"
 do
     # get the table foreign key
-
-    echo "SELECT 
+    echo "SELECT
       TABLE_NAME,COLUMN_NAME,CONSTRAINT_NAME, REFERENCED_TABLE_NAME,REFERENCED_COLUMN_NAME
     FROM
       INFORMATION_SCHEMA.KEY_COLUMN_USAGE
@@ -208,9 +210,9 @@ do
 
     hasForeignKey=`cat "$SP_BUNDLE_PATH/rowsForeignStructure.tsv" | grep -v "TABLE_NAME" | wc -l | awk '{print $1}'`;
     if [ $hasForeignKey != 0 ]; then
-        FILENAME=$(date "+%Y_%m_%d_%H%M%S-0_add_fk_to_${table}_table.php")
+        FILENAME=$(date "+%Y_%m_%d_%H%M%S_add_foreign_key_to_${table}_table.php")
         /usr/bin/php "$SP_BUNDLE_PATH/parse.php" "${table}" "foreignkey" > $DESTDIR/$FILENAME
-        echo "<p>Migration Foreing Key saved: <a href=\"SP-REVEAL-FILE://$DESTDIR/$FILENAME\">$FILENAME</a></p>"
+        echo "<p>Migration for foreign key saved: <a href=\"SP-REVEAL-FILE://$DESTDIR/$FILENAME\">$FILENAME</a></p>"
         # clean up
         clear_temp
     fi
