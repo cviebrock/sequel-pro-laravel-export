@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.1 - 28-Dec-2020
+
+- Create separate migrations to handle foreign keys (#37, thanks @rootrus)
+- BIGINTEGER AUTO_INCREMENT columns are now exported as `->id()` with
+  optional column name if it isn't `id`
+
+
 ## 2.0.0 - 02-Dec-2020
 
 - Bundle now supports [Sequel Pro](https://www.sequelpro.com/)
