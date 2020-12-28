@@ -263,6 +263,9 @@ class MigrationParser
                 }
 
                 $data['comment'] = trim(str_replace(["\r", "\n"], '', $comment));
+                if ($data['comment']==='') {
+                    $data['comment'] = null;
+                }
 
                 $this->structure[$field] = $data;
             }
@@ -310,21 +313,23 @@ class MigrationParser
             $this->structure['remember_token']['field'] = null;
         }
 
-        // look for id primary key
-        if (
-            array_key_exists('id', $this->structure)
-            && $this->structure['id']['method'] === 'integer'
-            && $this->structure['id']['autoIncrement'] === true
-            && $this->structure['id']['args'] === null
-        ) {
-            $this->structure['id']['method'] = 'id';
-            $this->structure['id']['args'] = null;
-            $this->structure['id']['default'] = null;
-            $this->structure['id']['nullable'] = false;
-            $this->structure['id']['field'] = null;
-            $this->structure['id']['comment'] = null;
-            $this->structure['id']['autoIncrement'] = null;
-            $this->structure['id']['unsigned'] = null;
+        // look for id
+        foreach ($this->structure as $field=>$struct) {
+            if (
+                $struct['method'] === 'bigInteger'
+                && $struct['autoIncrement'] === true
+                && $struct['args'] === null
+            ) {
+                $this->structure[$field]['method'] = 'id';
+                $this->structure[$field]['args'] = null;
+                $this->structure[$field]['default'] = null;
+                $this->structure[$field]['nullable'] = false;
+                $this->structure[$field]['autoIncrement'] = null;
+                $this->structure[$field]['unsigned'] = null;
+                if ($field==='id') {
+                    $this->structure[$field]['field'] = null;
+                }
+            }
         }
     }
 
@@ -393,7 +398,7 @@ class MigrationParser
             }
 
             // If isn't empty, set the comment
-            if ($data['comment'] !== '' || $data['comment'] !== null) {
+            if ($data['comment'] !== null) {
                 $temp .= '->comment(\'' . addslashes($data['comment']) . '\')';
             }
 
