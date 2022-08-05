@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.2 - 05-Aug-2022
+
+- Fix the version as reported in export files (#41, thanks @pemedina)
+
+
 ## 2.0.1 - 28-Dec-2020
 
 - Create separate migrations to handle foreign keys (#37, thanks @rootrus)
