@@ -48,11 +48,7 @@ running `artisan migrate`!
 ## Bugs, Suggestions and Contributions
 
 Thanks to [everyone](https://github.com/cviebrock/sequel-pro-laravel-export/graphs/contributors)
-who has contributed to this project!  Special thanks to 
-[JetBrains](https://www.jetbrains.com/?from=cviebrock/eloquent-sluggable) for their 
-Open Source License Program ... and the excellent PHPStorm IDE, of course!
-
-[![JetBrains](./.github/jetbrains.svg)](https://www.jetbrains.com/?from=cviebrock/sequel-pro-laravel-export)
+who has contributed to this project!
 
 Please use [Github issues](https://github.com/cviebrock/sequel-pro-laravel-export/issues) for reporting bugs, 
 and making comments or suggestions.
