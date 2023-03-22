@@ -182,7 +182,7 @@ do
 
     # process the results and save to the desktop
     FILENAME=$(date "+%Y_%m_%d_%H%M%S_create_${table}_table.php")
-    /usr/bin/php "$SP_BUNDLE_PATH/parse.php" "${table}" > $DESTDIR/$FILENAME
+    /usr/local/bin/node "$SP_BUNDLE_PATH/parse.js" "${table}" > $DESTDIR/$FILENAME
     echo "<p>Migration saved: <a href=\"SP-REVEAL-FILE://$DESTDIR/$FILENAME\">$FILENAME</a></p>"
     # clean up
     clear_temp
@@ -211,7 +211,7 @@ do
     hasForeignKey=`cat "$SP_BUNDLE_PATH/rowsForeignStructure.tsv" | grep -v "TABLE_NAME" | wc -l | awk '{print $1}'`;
     if [ $hasForeignKey != 0 ]; then
         FILENAME=$(date "+%Y_%m_%d_%H%M%S_add_foreign_key_to_${table}_table.php")
-        /usr/bin/php "$SP_BUNDLE_PATH/parse.php" "${table}" "foreignkey" > $DESTDIR/$FILENAME
+        /usr/local/bin/node "$SP_BUNDLE_PATH/parse.js" "${table}" "foreignkey" > $DESTDIR/$FILENAME
         echo "<p>Migration for foreign key saved: <a href=\"SP-REVEAL-FILE://$DESTDIR/$FILENAME\">$FILENAME</a></p>"
         # clean up
         clear_temp
